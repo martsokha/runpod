@@ -247,84 +247,59 @@ pub trait PodsService {
 }
 
 impl PodsService for RunpodClient {
-    fn create_pod(&self, input: PodCreateInput) -> impl Future<Output = Result<Pod>> {
-        async move {
-            let response = self.post("/pods").json(&input).send().await?;
-            let pod = response.json().await?;
-            Ok(pod)
-        }
+    async fn create_pod(&self, input: PodCreateInput) -> Result<Pod> {
+        let response = self.post("/pods").json(&input).send().await?;
+        let pod = response.json().await?;
+        Ok(pod)
     }
 
-    fn list_pods(&self, query: ListPodsQuery) -> impl Future<Output = Result<Pods>> {
-        async move {
-            let response = self.get("/pods").query(&query).send().await?;
-            let pods = response.json().await?;
-            Ok(pods)
-        }
+    async fn list_pods(&self, query: ListPodsQuery) -> Result<Pods> {
+        let response = self.get("/pods").query(&query).send().await?;
+        let pods = response.json().await?;
+        Ok(pods)
     }
 
-    fn get_pod(&self, pod_id: &str, query: GetPodQuery) -> impl Future<Output = Result<Pod>> {
-        let pod_id = pod_id.to_string();
-        async move {
-            let path = format!("/pods/{}", pod_id);
-            let response = self.get(&path).query(&query).send().await?;
-            let pod = response.json().await?;
-            Ok(pod)
-        }
+    async fn get_pod(&self, pod_id: &str, query: GetPodQuery) -> Result<Pod> {
+        let path = format!("/pods/{}", pod_id);
+        let response = self.get(&path).query(&query).send().await?;
+        let pod = response.json().await?;
+        Ok(pod)
     }
 
-    fn update_pod(&self, pod_id: &str, input: PodUpdateInput) -> impl Future<Output = Result<Pod>> {
-        let pod_id = pod_id.to_string();
-        async move {
-            let path = format!("/pods/{}", pod_id);
-            let response = self.patch(&path).json(&input).send().await?;
-            let pod = response.json().await?;
-            Ok(pod)
-        }
+    async fn update_pod(&self, pod_id: &str, input: PodUpdateInput) -> Result<Pod> {
+        let path = format!("/pods/{}", pod_id);
+        let response = self.patch(&path).json(&input).send().await?;
+        let pod = response.json().await?;
+        Ok(pod)
     }
 
-    fn delete_pod(&self, pod_id: &str) -> impl Future<Output = Result<()>> {
-        let pod_id = pod_id.to_string();
-        async move {
-            let path = format!("/pods/{}", pod_id);
-            self.delete(&path).send().await?;
-            Ok(())
-        }
+    async fn delete_pod(&self, pod_id: &str) -> Result<()> {
+        let path = format!("/pods/{}", pod_id);
+        self.delete(&path).send().await?;
+        Ok(())
     }
 
-    fn start_pod(&self, pod_id: &str) -> impl Future<Output = Result<()>> {
-        let pod_id = pod_id.to_string();
-        async move {
-            let path = format!("/pods/{}/start", pod_id);
-            self.post(&path).send().await?;
-            Ok(())
-        }
+    async fn start_pod(&self, pod_id: &str) -> Result<()> {
+        let path = format!("/pods/{}/start", pod_id);
+        self.post(&path).send().await?;
+        Ok(())
     }
 
-    fn stop_pod(&self, pod_id: &str) -> impl Future<Output = Result<()>> {
-        let pod_id = pod_id.to_string();
-        async move {
-            let path = format!("/pods/{}/stop", pod_id);
-            self.post(&path).send().await?;
-            Ok(())
-        }
+    async fn stop_pod(&self, pod_id: &str) -> Result<()> {
+        let path = format!("/pods/{}/stop", pod_id);
+        self.post(&path).send().await?;
+        Ok(())
     }
 
-    fn reset_pod(&self, pod_id: &str) -> impl Future<Output = Result<()>> {
-        let pod_id = pod_id.to_string();
-        async move {
-            let path = format!("/pods/{}/reset", pod_id);
-            self.post(&path).send().await?;
-            Ok(())
-        }
+    async fn reset_pod(&self, pod_id: &str) -> Result<()> {
+        let path = format!("/pods/{}/reset", pod_id);
+        self.post(&path).send().await?;
+        Ok(())
     }
 
-    fn restart_pod(&self, pod_id: &str) -> impl Future<Output = Result<()>> {
-        let pod_id = pod_id.to_string();
-        async move {
-            let path = format!("/pods/{}/restart", pod_id);
-            self.post(&path).send().await?;
-            Ok(())
-        }
+    async fn restart_pod(&self, pod_id: &str) -> Result<()> {
+        let path = format!("/pods/{}/restart", pod_id);
+        self.post(&path).send().await?;
+        Ok(())
     }
 }

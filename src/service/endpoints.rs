@@ -177,59 +177,39 @@ pub trait EndpointsService {
 }
 
 impl EndpointsService for RunpodClient {
-    fn create_endpoint(
-        &self,
-        input: EndpointCreateInput,
-    ) -> impl Future<Output = Result<Endpoint>> {
-        async move {
-            let response = self.post("/endpoints").json(&input).send().await?;
-            let endpoint = response.json().await?;
-            Ok(endpoint)
-        }
+    async fn create_endpoint(&self, input: EndpointCreateInput) -> Result<Endpoint> {
+        let response = self.post("/endpoints").json(&input).send().await?;
+        let endpoint = response.json().await?;
+        Ok(endpoint)
     }
 
-    fn list_endpoints(&self, query: ListEndpointsQuery) -> impl Future<Output = Result<Endpoints>> {
-        async move {
-            let response = self.get("/endpoints").query(&query).send().await?;
-            let endpoints = response.json().await?;
-            Ok(endpoints)
-        }
+    async fn list_endpoints(&self, query: ListEndpointsQuery) -> Result<Endpoints> {
+        let response = self.get("/endpoints").query(&query).send().await?;
+        let endpoints = response.json().await?;
+        Ok(endpoints)
     }
 
-    fn get_endpoint(
-        &self,
-        endpoint_id: &str,
-        query: GetEndpointQuery,
-    ) -> impl Future<Output = Result<Endpoint>> {
-        let endpoint_id = endpoint_id.to_string();
-        async move {
-            let path = format!("/endpoints/{}", endpoint_id);
-            let response = self.get(&path).query(&query).send().await?;
-            let endpoint = response.json().await?;
-            Ok(endpoint)
-        }
+    async fn get_endpoint(&self, endpoint_id: &str, query: GetEndpointQuery) -> Result<Endpoint> {
+        let path = format!("/endpoints/{}", endpoint_id);
+        let response = self.get(&path).query(&query).send().await?;
+        let endpoint = response.json().await?;
+        Ok(endpoint)
     }
 
-    fn update_endpoint(
+    async fn update_endpoint(
         &self,
         endpoint_id: &str,
         input: EndpointUpdateInput,
-    ) -> impl Future<Output = Result<Endpoint>> {
-        let endpoint_id = endpoint_id.to_string();
-        async move {
-            let path = format!("/endpoints/{}", endpoint_id);
-            let response = self.patch(&path).json(&input).send().await?;
-            let endpoint = response.json().await?;
-            Ok(endpoint)
-        }
+    ) -> Result<Endpoint> {
+        let path = format!("/endpoints/{}", endpoint_id);
+        let response = self.patch(&path).json(&input).send().await?;
+        let endpoint = response.json().await?;
+        Ok(endpoint)
     }
 
-    fn delete_endpoint(&self, endpoint_id: &str) -> impl Future<Output = Result<()>> {
-        let endpoint_id = endpoint_id.to_string();
-        async move {
-            let path = format!("/endpoints/{}", endpoint_id);
-            self.delete(&path).send().await?;
-            Ok(())
-        }
+    async fn delete_endpoint(&self, endpoint_id: &str) -> Result<()> {
+        let path = format!("/endpoints/{}", endpoint_id);
+        self.delete(&path).send().await?;
+        Ok(())
     }
 }

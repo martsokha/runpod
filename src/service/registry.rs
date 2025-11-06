@@ -10,7 +10,6 @@ use crate::model::{
 ///
 /// Provides methods for creating, listing, retrieving, and deleting container registry authentications.
 /// This trait is implemented on the [`RunpodClient`](crate::client::RunpodClient).
-
 pub trait RegistryService {
     /// Creates a new container registry authentication.
     ///
@@ -23,6 +22,7 @@ pub trait RegistryService {
     /// Returns the created container registry authentication information.
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::ContainerRegistryAuthCreateInput;
@@ -54,6 +54,7 @@ pub trait RegistryService {
     /// Returns a vector of all container registry authentications associated with the account.
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::service::RegistryService;
@@ -79,6 +80,7 @@ pub trait RegistryService {
     /// Returns the container registry authentication information.
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::service::RegistryService;
@@ -105,6 +107,7 @@ pub trait RegistryService {
     /// * `auth_id` - The unique identifier of the authentication to delete
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::service::RegistryService;
@@ -121,48 +124,35 @@ pub trait RegistryService {
 }
 
 impl RegistryService for RunpodClient {
-    fn create_registry_auth(
+    async fn create_registry_auth(
         &self,
         input: ContainerRegistryAuthCreateInput,
-    ) -> impl Future<Output = Result<ContainerRegistryAuth>> {
-        async move {
-            let response = self
-                .post("/containerregistryauth")
-                .json(&input)
-                .send()
-                .await?;
-            let auth = response.json().await?;
-            Ok(auth)
-        }
+    ) -> Result<ContainerRegistryAuth> {
+        let response = self
+            .post("/containerregistryauth")
+            .json(&input)
+            .send()
+            .await?;
+        let auth = response.json().await?;
+        Ok(auth)
     }
 
-    fn list_registry_auths(&self) -> impl Future<Output = Result<ContainerRegistryAuths>> {
-        async move {
-            let response = self.get("/containerregistryauth").send().await?;
-            let auths = response.json().await?;
-            Ok(auths)
-        }
+    async fn list_registry_auths(&self) -> Result<ContainerRegistryAuths> {
+        let response = self.get("/containerregistryauth").send().await?;
+        let auths = response.json().await?;
+        Ok(auths)
     }
 
-    fn get_registry_auth(
-        &self,
-        auth_id: &str,
-    ) -> impl Future<Output = Result<ContainerRegistryAuth>> {
-        let auth_id = auth_id.to_string();
-        async move {
-            let path = format!("/containerregistryauth/{}", auth_id);
-            let response = self.get(&path).send().await?;
-            let auth = response.json().await?;
-            Ok(auth)
-        }
+    async fn get_registry_auth(&self, auth_id: &str) -> Result<ContainerRegistryAuth> {
+        let path = format!("/containerregistryauth/{}", auth_id);
+        let response = self.get(&path).send().await?;
+        let auth = response.json().await?;
+        Ok(auth)
     }
 
-    fn delete_registry_auth(&self, auth_id: &str) -> impl Future<Output = Result<()>> {
-        let auth_id = auth_id.to_string();
-        async move {
-            let path = format!("/containerregistryauth/{}", auth_id);
-            self.delete(&path).send().await?;
-            Ok(())
-        }
+    async fn delete_registry_auth(&self, auth_id: &str) -> Result<()> {
+        let path = format!("/containerregistryauth/{}", auth_id);
+        self.delete(&path).send().await?;
+        Ok(())
     }
 }

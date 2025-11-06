@@ -23,6 +23,7 @@ pub trait TemplatesService {
     /// Returns the created template information.
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::TemplateCreateInput;
@@ -67,6 +68,7 @@ pub trait TemplatesService {
     /// Returns a vector of templates matching the query criteria.
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::ListTemplatesQuery;
@@ -99,6 +101,7 @@ pub trait TemplatesService {
     /// Returns the template information.
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::GetTemplateQuery;
@@ -132,6 +135,7 @@ pub trait TemplatesService {
     /// Returns the updated template information.
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::TemplateUpdateInput;
@@ -165,6 +169,7 @@ pub trait TemplatesService {
     /// * `template_id` - The unique identifier of the template to delete
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::service::TemplatesService;
@@ -181,59 +186,39 @@ pub trait TemplatesService {
 }
 
 impl TemplatesService for RunpodClient {
-    fn create_template(
-        &self,
-        input: TemplateCreateInput,
-    ) -> impl Future<Output = Result<Template>> {
-        async move {
-            let response = self.post("/templates").json(&input).send().await?;
-            let template = response.json().await?;
-            Ok(template)
-        }
+    async fn create_template(&self, input: TemplateCreateInput) -> Result<Template> {
+        let response = self.post("/templates").json(&input).send().await?;
+        let template = response.json().await?;
+        Ok(template)
     }
 
-    fn list_templates(&self, query: ListTemplatesQuery) -> impl Future<Output = Result<Templates>> {
-        async move {
-            let response = self.get("/templates").query(&query).send().await?;
-            let templates = response.json().await?;
-            Ok(templates)
-        }
+    async fn list_templates(&self, query: ListTemplatesQuery) -> Result<Templates> {
+        let response = self.get("/templates").query(&query).send().await?;
+        let templates = response.json().await?;
+        Ok(templates)
     }
 
-    fn get_template(
-        &self,
-        template_id: &str,
-        query: GetTemplateQuery,
-    ) -> impl Future<Output = Result<Template>> {
-        let template_id = template_id.to_string();
-        async move {
-            let path = format!("/templates/{}", template_id);
-            let response = self.get(&path).query(&query).send().await?;
-            let template = response.json().await?;
-            Ok(template)
-        }
+    async fn get_template(&self, template_id: &str, query: GetTemplateQuery) -> Result<Template> {
+        let path = format!("/templates/{}", template_id);
+        let response = self.get(&path).query(&query).send().await?;
+        let template = response.json().await?;
+        Ok(template)
     }
 
-    fn update_template(
+    async fn update_template(
         &self,
         template_id: &str,
         input: TemplateUpdateInput,
-    ) -> impl Future<Output = Result<Template>> {
-        let template_id = template_id.to_string();
-        async move {
-            let path = format!("/templates/{}", template_id);
-            let response = self.patch(&path).json(&input).send().await?;
-            let template = response.json().await?;
-            Ok(template)
-        }
+    ) -> Result<Template> {
+        let path = format!("/templates/{}", template_id);
+        let response = self.patch(&path).json(&input).send().await?;
+        let template = response.json().await?;
+        Ok(template)
     }
 
-    fn delete_template(&self, template_id: &str) -> impl Future<Output = Result<()>> {
-        let template_id = template_id.to_string();
-        async move {
-            let path = format!("/templates/{}", template_id);
-            self.delete(&path).send().await?;
-            Ok(())
-        }
+    async fn delete_template(&self, template_id: &str) -> Result<()> {
+        let path = format!("/templates/{}", template_id);
+        self.delete(&path).send().await?;
+        Ok(())
     }
 }

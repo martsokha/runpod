@@ -153,55 +153,39 @@ pub trait VolumesService {
 }
 
 impl VolumesService for RunpodClient {
-    fn create_volume(
-        &self,
-        input: NetworkVolumeCreateInput,
-    ) -> impl Future<Output = Result<NetworkVolume>> {
-        async move {
-            let response = self.post("/networkvolumes").json(&input).send().await?;
-            let volume = response.json().await?;
-            Ok(volume)
-        }
+    async fn create_volume(&self, input: NetworkVolumeCreateInput) -> Result<NetworkVolume> {
+        let response = self.post("/networkvolumes").json(&input).send().await?;
+        let volume = response.json().await?;
+        Ok(volume)
     }
 
-    fn list_volumes(&self) -> impl Future<Output = Result<NetworkVolumes>> {
-        async move {
-            let response = self.get("/networkvolumes").send().await?;
-            let volumes = response.json().await?;
-            Ok(volumes)
-        }
+    async fn list_volumes(&self) -> Result<NetworkVolumes> {
+        let response = self.get("/networkvolumes").send().await?;
+        let volumes = response.json().await?;
+        Ok(volumes)
     }
 
-    fn get_volume(&self, volume_id: &str) -> impl Future<Output = Result<NetworkVolume>> {
-        let volume_id = volume_id.to_string();
-        async move {
-            let path = format!("/networkvolumes/{}", volume_id);
-            let response = self.get(&path).send().await?;
-            let volume = response.json().await?;
-            Ok(volume)
-        }
+    async fn get_volume(&self, volume_id: &str) -> Result<NetworkVolume> {
+        let path = format!("/networkvolumes/{}", volume_id);
+        let response = self.get(&path).send().await?;
+        let volume = response.json().await?;
+        Ok(volume)
     }
 
-    fn update_volume(
+    async fn update_volume(
         &self,
         volume_id: &str,
         input: NetworkVolumeUpdateInput,
-    ) -> impl Future<Output = Result<NetworkVolume>> {
-        let volume_id = volume_id.to_string();
-        async move {
-            let path = format!("/networkvolumes/{}", volume_id);
-            let response = self.patch(&path).json(&input).send().await?;
-            let volume = response.json().await?;
-            Ok(volume)
-        }
+    ) -> Result<NetworkVolume> {
+        let path = format!("/networkvolumes/{}", volume_id);
+        let response = self.patch(&path).json(&input).send().await?;
+        let volume = response.json().await?;
+        Ok(volume)
     }
 
-    fn delete_volume(&self, volume_id: &str) -> impl Future<Output = Result<()>> {
-        let volume_id = volume_id.to_string();
-        async move {
-            let path = format!("/networkvolumes/{}", volume_id);
-            self.delete(&path).send().await?;
-            Ok(())
-        }
+    async fn delete_volume(&self, volume_id: &str) -> Result<()> {
+        let path = format!("/networkvolumes/{}", volume_id);
+        self.delete(&path).send().await?;
+        Ok(())
     }
 }

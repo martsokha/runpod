@@ -59,7 +59,7 @@ use runpod_sdk::{RunpodClient, Result};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Uses RUNPOD_API_KEY, RUNPOD_BASE_URL, RUNPOD_TIMEOUT_SECS
+    // Uses RUNPOD_API_KEY, RUNPOD_BASE_URL, RUNPOD_BASE_GRAPHQL_URL (with graphql feature), RUNPOD_TIMEOUT_SECS
     let client = RunpodClient::from_env()?;
     Ok(())
 }

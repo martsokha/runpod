@@ -8,7 +8,7 @@ pub mod service;
 
 pub use client::{RunpodBuilder, RunpodClient, RunpodConfig};
 
-use crate::client::config::RunpodBuilderError;
+use crate::client::RunpodBuilderError;
 
 /// Error type for RunPod API operations.
 ///
@@ -41,18 +41,13 @@ pub enum Error {
     /// timeout errors, and other transport-layer problems.
     #[error("HTTP error: {0}")]
     Http(#[from] reqwest::Error),
-
-    /// API-level error returned by the RunPod service.
-    ///
-    /// This represents errors in the API response, such as authentication
-    /// failures, resource not found, validation errors, etc.
-    #[error("API error: {0}")]
-    Api(String),
-
+    
     /// JSON serialization/deserialization error.
     ///
     /// This occurs when the SDK fails to parse API responses or serialize
     /// request payloads to/from JSON.
+    #[cfg(feature = "graphql")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "graphql")))]
     #[error("Serialization error: {0}")]
     Serialization(#[from] serde_json::Error),
 

@@ -144,8 +144,16 @@ impl RunpodClient {
     }
 
     /// Creates a GET request.
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(skip(self), fields(method = "GET", path))
+    )]
     pub(crate) fn get(&self, path: &str) -> RequestBuilder {
         let url = format!("{}{}", self.inner.config.base_url(), path);
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(url = %url, "Creating GET request");
+
         self.inner
             .client
             .get(&url)
@@ -154,8 +162,16 @@ impl RunpodClient {
     }
 
     /// Creates a POST request.
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(skip(self), fields(method = "POST", path))
+    )]
     pub(crate) fn post(&self, path: &str) -> RequestBuilder {
         let url = format!("{}{}", self.inner.config.base_url(), path);
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(url = %url, "Creating POST request");
+
         self.inner
             .client
             .post(&url)
@@ -163,20 +179,17 @@ impl RunpodClient {
             .timeout(self.inner.config.timeout())
     }
 
-    /// Creates a PUT request.
-    #[allow(dead_code)]
-    pub(crate) fn put(&self, path: &str) -> RequestBuilder {
-        let url = format!("{}{}", self.inner.config.base_url(), path);
-        self.inner
-            .client
-            .put(&url)
-            .bearer_auth(self.inner.config.api_key())
-            .timeout(self.inner.config.timeout())
-    }
-
     /// Creates a PATCH request.
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(skip(self), fields(method = "PATCH", path))
+    )]
     pub(crate) fn patch(&self, path: &str) -> RequestBuilder {
         let url = format!("{}{}", self.inner.config.base_url(), path);
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(url = %url, "Creating PATCH request");
+
         self.inner
             .client
             .patch(&url)
@@ -185,22 +198,89 @@ impl RunpodClient {
     }
 
     /// Creates a DELETE request.
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(skip(self), fields(method = "DELETE", path))
+    )]
     pub(crate) fn delete(&self, path: &str) -> RequestBuilder {
         let url = format!("{}{}", self.inner.config.base_url(), path);
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(url = %url, "Creating DELETE request");
+
         self.inner
             .client
             .delete(&url)
             .bearer_auth(self.inner.config.api_key())
             .timeout(self.inner.config.timeout())
     }
+
+    /// Executes a GraphQL query.
+    ///
+    /// # Arguments
+    ///
+    /// * `query` - The GraphQL query string
+    ///
+    /// # Returns
+    ///
+    /// Returns the deserialized response data of type `T`.
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use runpod_sdk::{RunpodClient, Result};
+    /// # use serde::Deserialize;
+    /// # #[derive(Deserialize)]
+    /// # struct MyResponse {
+    /// #     data: String,
+    /// # }
+    /// # async fn example() -> Result<()> {
+    /// let client = RunpodClient::from_env()?;
+    /// let query = r#"{ viewer { id name } }"#;
+    /// let response: MyResponse = client.graphql_query(query).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[cfg(feature = "graphql")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "graphql")))]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(self, query), fields(query_len = query.len())))]
+    pub async fn graphql_query<T>(&self, query: &str) -> Result<T>
+    where
+        T: for<'de> serde::Deserialize<'de>,
+    {
+        let url = self.inner.config.base_graphql_url();
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(url = %url, "Executing GraphQL query");
+
+        let response = self
+            .inner
+            .client
+            .post(url)
+            .bearer_auth(self.inner.config.api_key())
+            .timeout(self.inner.config.timeout())
+            .json(&serde_json::json!({ "query": query }))
+            .send()
+            .await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(status = %response.status(), "GraphQL response received");
+
+        let result = response.json().await?;
+        Ok(result)
+    }
 }
 
 impl fmt::Debug for RunpodClient {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("RunpodClient")
+        let mut debug_struct = f.debug_struct("RunpodClient");
+        debug_struct
             .field("api_key", &self.inner.config.masked_api_key())
             .field("base_url", &self.inner.config.base_url())
-            .field("timeout", &self.inner.config.timeout())
-            .finish()
+            .field("timeout", &self.inner.config.timeout());
+
+        #[cfg(feature = "graphql")]
+        debug_struct.field("base_graphql_url", &self.inner.config.base_graphql_url());
+
+        debug_struct.finish()
     }
 }

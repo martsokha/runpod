@@ -185,40 +185,25 @@ pub trait BillingService {
 }
 
 impl BillingService for RunpodClient {
-    fn get_pod_billing(
-        &self,
-        query: PodBillingQuery,
-    ) -> impl Future<Output = Result<BillingRecords>> {
-        async move {
-            let response = self.get("/billing/pods").query(&query).send().await?;
-            let records = response.json().await?;
-            Ok(records)
-        }
+    async fn get_pod_billing(&self, query: PodBillingQuery) -> Result<BillingRecords> {
+        let response = self.get("/billing/pods").query(&query).send().await?;
+        let records = response.json().await?;
+        Ok(records)
     }
 
-    fn get_endpoint_billing(
-        &self,
-        query: EndpointBillingQuery,
-    ) -> impl Future<Output = Result<BillingRecords>> {
-        async move {
-            let response = self.get("/billing/endpoints").query(&query).send().await?;
-            let records = response.json().await?;
-            Ok(records)
-        }
+    async fn get_endpoint_billing(&self, query: EndpointBillingQuery) -> Result<BillingRecords> {
+        let response = self.get("/billing/endpoints").query(&query).send().await?;
+        let records = response.json().await?;
+        Ok(records)
     }
 
-    fn get_volume_billing(
-        &self,
-        query: NetworkVolumeBillingQuery,
-    ) -> impl Future<Output = Result<BillingRecords>> {
-        async move {
-            let response = self
-                .get("/billing/networkvolumes")
-                .query(&query)
-                .send()
-                .await?;
-            let records = response.json().await?;
-            Ok(records)
-        }
+    async fn get_volume_billing(&self, query: NetworkVolumeBillingQuery) -> Result<BillingRecords> {
+        let response = self
+            .get("/billing/networkvolumes")
+            .query(&query)
+            .send()
+            .await?;
+        let records = response.json().await?;
+        Ok(records)
     }
 }
