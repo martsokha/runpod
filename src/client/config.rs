@@ -65,8 +65,8 @@ pub struct RunpodConfig {
     /// Defaults to the official Runpod GraphQL API endpoint.
     #[cfg(feature = "graphql")]
     #[cfg_attr(docsrs, doc(cfg(feature = "graphql")))]
-    #[builder(default = "Self::default_base_graphql_url()")]
-    base_graphql_url: String,
+    #[builder(default = "Self::default_graphql_url()")]
+    graphql_url: String,
 
     /// Timeout for HTTP requests.
     ///
@@ -84,7 +84,7 @@ impl RunpodBuilder {
     /// Returns the default base GraphQL URL for the Runpod API.
     #[cfg(feature = "graphql")]
     #[cfg_attr(docsrs, doc(cfg(feature = "graphql")))]
-    fn default_base_graphql_url() -> String {
+    fn default_graphql_url() -> String {
         "https://api.runpod.io/graphql".to_string()
     }
 
@@ -137,7 +137,7 @@ impl RunpodConfig {
     /// Creates a configuration from environment variables.
     ///
     /// Reads the API key from the `RUNPOD_API_KEY` environment variable.
-    /// Optionally reads `RUNPOD_BASE_URL`, `RUNPOD_BASE_GRAPHQL_URL` (with graphql feature), and `RUNPOD_TIMEOUT_SECS` if set.
+    /// Optionally reads `RUNPOD_BASE_URL`, `RUNPOD_GRAPHQL_URL` (with graphql feature), and `RUNPOD_TIMEOUT_SECS` if set.
     ///
     /// # Errors
     ///
@@ -151,7 +151,6 @@ impl RunpodConfig {
     /// # use runpod_sdk::RunpodConfig;
     /// // Set environment variable first:
     /// // export RUNPOD_API_KEY=your-api-key
-    ///
     /// let config = RunpodConfig::from_env().unwrap();
     /// ```
     pub fn from_env() -> Result<Self> {
@@ -168,10 +167,10 @@ impl RunpodConfig {
             builder = builder.with_base_url(base_url);
         }
 
-        // Optional: custom base GraphQL URL
+        // Optional: custom GraphQL URL
         #[cfg(feature = "graphql")]
-        if let Ok(base_graphql_url) = std::env::var("RUNPOD_BASE_GRAPHQL_URL") {
-            builder = builder.with_base_graphql_url(base_graphql_url);
+        if let Ok(graphql_url) = std::env::var("RUNPOD_GRAPHQL_URL") {
+            builder = builder.with_graphql_url(graphql_url);
         }
 
         // Optional: custom timeout
@@ -230,8 +229,8 @@ impl RunpodConfig {
     /// Returns the base GraphQL URL.
     #[cfg(feature = "graphql")]
     #[cfg_attr(docsrs, doc(cfg(feature = "graphql")))]
-    pub fn base_graphql_url(&self) -> &str {
-        &self.base_graphql_url
+    pub fn graphql_url(&self) -> &str {
+        &self.graphql_url
     }
 
     /// Returns the timeout duration.
@@ -270,7 +269,7 @@ impl fmt::Debug for RunpodConfig {
             .field("timeout", &self.timeout);
 
         #[cfg(feature = "graphql")]
-        debug_struct.field("base_graphql_url", &self.base_graphql_url);
+        debug_struct.field("graphql_url", &self.graphql_url);
 
         debug_struct.finish()
     }
@@ -287,7 +286,7 @@ mod tests {
         assert_eq!(config.api_key(), "test_key");
         assert_eq!(config.base_url(), "https://rest.runpod.io/v1");
         #[cfg(feature = "graphql")]
-        assert_eq!(config.base_graphql_url(), "https://api.runpod.io/graphql");
+        assert_eq!(config.graphql_url(), "https://api.runpod.io/graphql");
         assert_eq!(config.timeout(), Duration::from_secs(30));
 
         Ok(())

@@ -23,6 +23,7 @@ pub trait EndpointsService {
     /// Returns the created endpoint information.
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::EndpointCreateInput;
@@ -58,6 +59,7 @@ pub trait EndpointsService {
     /// Returns a vector of endpoints matching the query criteria.
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::ListEndpointsQuery;
@@ -90,6 +92,7 @@ pub trait EndpointsService {
     /// Returns the endpoint information.
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::GetEndpointQuery;
@@ -128,6 +131,7 @@ pub trait EndpointsService {
     /// Returns the updated endpoint information.
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::EndpointUpdateInput;
@@ -161,6 +165,7 @@ pub trait EndpointsService {
     /// * `endpoint_id` - The unique identifier of the endpoint to delete
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::service::EndpointsService;

@@ -1,17 +1,23 @@
 # Runpod SDK
 
-This crate is a fork of the original [runpod.rs](https://github.com/agentsea/runpod.rs) developed by [Patrick Barker](https://github.com/pbarker).
+This crate is a fork of the original
+[runpod.rs](https://github.com/agentsea/runpod.rs) developed by
+[Patrick Barker](https://github.com/pbarker).
 
 [![Crates.io](https://img.shields.io/crates/v/runpod-sdk?style=flat-square&color=black)](https://crates.io/crates/runpod-sdk)
 [![Documentation](https://img.shields.io/docsrs/runpod-sdk?style=flat-square&color=black)](https://docs.rs/runpod-sdk)
 [![Build](https://img.shields.io/github/actions/workflow/status/martsokha/runpod/build.yml?style=flat-square&color=black)](https://github.com/martsokha/runpod/actions)
 
-A Rust client library for the [Runpod API](https://docs.runpod.io/). This SDK provides a type-safe, ergonomic interface for managing Pods, Serverless endpoints, templates, network volumes, and more.
+A Rust client library for the [Runpod API](https://docs.runpod.io/). This SDK
+provides a type-safe, ergonomic interface for managing Pods, Serverless
+endpoints, templates, network volumes, and more.
 
 ## Features
 
-- **Pod Management**: Complete lifecycle operations (create, list, update, delete, start, stop, etc.)
-- **Serverless Endpoints**: Full endpoint management with auto-scaling configuration
+- **Pod Management**: Complete lifecycle operations (create, list, update,
+  delete, start, stop, etc.)
+- **Serverless Endpoints**: Full endpoint management with auto-scaling
+  configuration
 - **Template Management**: Reusable pod templates with custom configurations
 - **Network Volumes**: Persistent storage volumes across pods
 - **Type Safety**: Strongly typed models with comprehensive validation
@@ -54,12 +60,20 @@ async fn main() -> Result<()> {
 
 ### Environment Variables
 
+The SDK can be configured using environment variables:
+
+| Variable              | Required | Default                         | Description                                                                              |
+| --------------------- | -------- | ------------------------------- | ---------------------------------------------------------------------------------------- |
+| `RUNPOD_API_KEY`      | Yes      | -                               | Your RunPod API key from [console settings](https://www.runpod.io/console/user/settings) |
+| `RUNPOD_BASE_URL`     | No       | `https://rest.runpod.io/v1`     | Custom REST API base URL                                                                 |
+| `RUNPOD_GRAPHQL_URL`  | No       | `https://api.runpod.io/graphql` | Custom GraphQL API URL (requires `graphql` feature)                                      |
+| `RUNPOD_TIMEOUT_SECS` | No       | `30`                            | Request timeout in seconds (max: 300)                                                    |
+
 ```rust,no_run
 use runpod_sdk::{RunpodClient, Result};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Uses RUNPOD_API_KEY, RUNPOD_BASE_URL, RUNPOD_BASE_GRAPHQL_URL (with graphql feature), RUNPOD_TIMEOUT_SECS
     let client = RunpodClient::from_env()?;
     Ok(())
 }
@@ -115,11 +129,14 @@ cargo run --example manage_pods
 
 ## Contributing
 
-Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details on how to submit pull requests, report issues, and contribute to the project.
+Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md)
+for details on how to submit pull requests, report issues, and contribute to the
+project.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details.
+This project is licensed under the MIT License - see the
+[LICENSE.txt](LICENSE.txt) file for details.
 
 ## Resources
 

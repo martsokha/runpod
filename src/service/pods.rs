@@ -20,6 +20,7 @@ pub trait PodsService {
     /// Returns the created pod information.
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::PodCreateInput;
@@ -52,6 +53,7 @@ pub trait PodsService {
     /// Returns a vector of pods matching the query criteria.
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::ListPodsQuery;
@@ -84,6 +86,7 @@ pub trait PodsService {
     /// Returns the pod information.
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::GetPodQuery;
@@ -116,6 +119,7 @@ pub trait PodsService {
     /// Returns the updated pod information.
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::PodUpdateInput;
@@ -143,6 +147,7 @@ pub trait PodsService {
     /// * `pod_id` - The unique identifier of the pod to delete
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::service::PodsService;
@@ -164,6 +169,7 @@ pub trait PodsService {
     /// * `pod_id` - The unique identifier of the pod to start
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::service::PodsService;
@@ -185,6 +191,7 @@ pub trait PodsService {
     /// * `pod_id` - The unique identifier of the pod to stop
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::service::PodsService;
@@ -208,6 +215,7 @@ pub trait PodsService {
     /// * `pod_id` - The unique identifier of the pod to reset
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::service::PodsService;
@@ -231,6 +239,7 @@ pub trait PodsService {
     /// * `pod_id` - The unique identifier of the pod to restart
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::service::PodsService;

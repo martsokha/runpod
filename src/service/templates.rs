@@ -23,7 +23,7 @@ pub trait TemplatesService {
     /// Returns the created template information.
     ///
     /// # Example
-    /// 
+    ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::TemplateCreateInput;
@@ -68,7 +68,7 @@ pub trait TemplatesService {
     /// Returns a vector of templates matching the query criteria.
     ///
     /// # Example
-    /// 
+    ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::ListTemplatesQuery;
@@ -101,7 +101,7 @@ pub trait TemplatesService {
     /// Returns the template information.
     ///
     /// # Example
-    /// 
+    ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::GetTemplateQuery;
@@ -135,7 +135,7 @@ pub trait TemplatesService {
     /// Returns the updated template information.
     ///
     /// # Example
-    /// 
+    ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::TemplateUpdateInput;
@@ -169,7 +169,7 @@ pub trait TemplatesService {
     /// * `template_id` - The unique identifier of the template to delete
     ///
     /// # Example
-    /// 
+    ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::service::TemplatesService;

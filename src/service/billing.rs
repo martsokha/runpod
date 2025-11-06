@@ -55,6 +55,7 @@ pub trait BillingService {
     /// - Pod identification and metadata
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::{PodBillingQuery, BucketSize};
@@ -106,6 +107,7 @@ pub trait BillingService {
     /// - Time-based cost breakdowns
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::{EndpointBillingQuery, BucketSize, BillingGrouping};
@@ -158,6 +160,7 @@ pub trait BillingService {
     /// - Time-based storage billing details
     ///
     /// # Example
+    /// 
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::{NetworkVolumeBillingQuery, BucketSize, BillingGrouping};

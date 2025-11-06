@@ -126,8 +126,9 @@ impl RunpodClient {
     /// # Environment Variables
     ///
     /// - `RUNPOD_API_KEY` - Your RunPod API key (required)
-    /// - `RUNPOD_BASE_URL` - Base URL for the API (optional, defaults to https://api.runpod.io/v1)
-    /// - `RUNPOD_TIMEOUT_SECS` - Request timeout in seconds (optional, defaults to 60)
+    /// - `RUNPOD_BASE_URL` - Base URL for the API (optional, defaults to <https://rest.runpod.io/v1>)
+    /// - `RUNPOD_GRAPHQL_URL` - GraphQL API URL (optional, defaults to <https://api.runpod.io/graphql>, requires `graphql` feature)
+    /// - `RUNPOD_TIMEOUT_SECS` - Request timeout in seconds (optional, defaults to 30)
     ///
     /// # Example
     /// ```no_run
@@ -247,20 +248,19 @@ impl RunpodClient {
     where
         T: for<'de> serde::Deserialize<'de>,
     {
-        let url = self.inner.config.base_graphql_url();
+        let url = self.inner.config.graphql_url();
 
         #[cfg(feature = "tracing")]
         tracing::debug!(url = %url, "Executing GraphQL query");
 
-        let response = self
+        let request = self
             .inner
             .client
             .post(url)
             .bearer_auth(self.inner.config.api_key())
             .timeout(self.inner.config.timeout())
-            .json(&serde_json::json!({ "query": query }))
-            .send()
-            .await?;
+            .json(&serde_json::json!({ "query": query }));
+        let response = request.send().await?;
 
         #[cfg(feature = "tracing")]
         tracing::debug!(status = %response.status(), "GraphQL response received");
@@ -279,7 +279,7 @@ impl fmt::Debug for RunpodClient {
             .field("timeout", &self.inner.config.timeout());
 
         #[cfg(feature = "graphql")]
-        debug_struct.field("base_graphql_url", &self.inner.config.base_graphql_url());
+        debug_struct.field("graphql_url", &self.inner.config.graphql_url());
 
         debug_struct.finish()
     }

@@ -22,7 +22,7 @@ pub trait RegistryService {
     /// Returns the created container registry authentication information.
     ///
     /// # Example
-    /// 
+    ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::ContainerRegistryAuthCreateInput;
@@ -54,7 +54,7 @@ pub trait RegistryService {
     /// Returns a vector of all container registry authentications associated with the account.
     ///
     /// # Example
-    /// 
+    ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::service::RegistryService;
@@ -80,7 +80,7 @@ pub trait RegistryService {
     /// Returns the container registry authentication information.
     ///
     /// # Example
-    /// 
+    ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::service::RegistryService;
@@ -107,7 +107,7 @@ pub trait RegistryService {
     /// * `auth_id` - The unique identifier of the authentication to delete
     ///
     /// # Example
-    /// 
+    ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::service::RegistryService;

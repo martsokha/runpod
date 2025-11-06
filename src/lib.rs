@@ -41,7 +41,7 @@ pub enum Error {
     /// timeout errors, and other transport-layer problems.
     #[error("HTTP error: {0}")]
     Http(#[from] reqwest::Error),
-    
+
     /// JSON serialization/deserialization error.
     ///
     /// This occurs when the SDK fails to parse API responses or serialize
