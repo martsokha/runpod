@@ -1,0 +1,44 @@
+# https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[package]
+name = "runpod-sdk"
+readme = "./README.md"
+
+version = "0.1.0"
+rust-version = "1.89"
+edition = "2024"
+license = "MIT"
+publish = false
+
+authors = ["Oleh Martsokha <o.martsokha@gmail.com>"]
+repository = "https://github.com/martsokha/runpod"
+homepage = "https://github.com/martsokha/runpod"
+documentation = "https://docs.rs/runpod-sdk"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[features]
+default = []
+tracing = ["dep:tracing"]
+
+[dependencies]
+# HTTP client
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+
+# (De)serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", features = [] }
+
+# Observability
+tracing = { version = "0.1", features = [], optional = true }
+
+# Derive macros & utilities
+thiserror = { version = "2.0", features = [] }
+derive_more = { version = "1.0", features = ["display", "from"] }
+strum = { version = "0.27", features = ["derive"] }
+derive_builder = { version = "0.20", features = [] }
+
+[dev-dependencies]
+tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
