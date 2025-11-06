@@ -17,7 +17,7 @@
 //!
 //! ```no_run
 //! use runpod_sdk::{RunpodConfig, model::ListPodsQuery};
-//! use runpod_sdk::service::PodsService;
+//! use runpod_sdk::service::{PodsService, EndpointsService, TemplatesService};
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let client = RunpodConfig::from_env()?.build_client()?;

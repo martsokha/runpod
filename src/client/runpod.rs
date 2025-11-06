@@ -88,7 +88,7 @@ use crate::Result;
 /// }).collect();
 ///
 /// for handle in handles {
-///     handle.await??;
+///     handle.await.unwrap()?;
 /// }
 /// # Ok(())
 /// # }

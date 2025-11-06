@@ -28,7 +28,6 @@ use crate::model::{
 /// All billing queries support optional start and end time parameters.
 /// Times should be provided in ISO 8601 format (e.g., "2024-01-01T00:00:00Z").
 /// If not specified, the service will return recent billing data.
-
 pub trait BillingService {
     /// Retrieves detailed Pod billing history and usage data.
     ///

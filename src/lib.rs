@@ -27,7 +27,7 @@ use crate::client::RunpodBuilderError;
 /// match client.list_pods(Default::default()).await {
 ///     Ok(pods) => println!("Found {} pods", pods.len()),
 ///     Err(Error::Http(e)) => println!("Network error: {}", e),
-///     Err(Error::Api(msg)) => println!("API error: {}", msg),
+///     Err(Error::Config(e)) => println!("Configuration error: {}", e),
 ///     Err(e) => println!("Other error: {}", e),
 /// }
 /// # Ok(())

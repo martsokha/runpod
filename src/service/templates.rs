@@ -78,7 +78,7 @@ pub trait TemplatesService {
     /// let client = RunpodClient::new(config)?;
     ///
     /// let query = ListTemplatesQuery {
-    ///     is_public: Some(true),
+    ///     include_public_templates: Some(true),
     ///     ..Default::default()
     /// };
     ///
