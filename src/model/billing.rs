@@ -1,70 +1,3 @@
-//! Billing models and related types for the RunPod API.
-//!
-//! This module contains all the data structures and types needed to retrieve and analyze
-//! billing information for RunPod resources including Pods, Serverless endpoints, and Network Volumes.
-//!
-//! # Overview
-//!
-//! RunPod's billing system provides detailed usage tracking and cost analysis across all compute resources:
-//!
-//! - **Time-bucketed Records**: Billing data aggregated by hour, day, week, month, or year
-//! - **Multi-resource Support**: Track costs for Pods, Serverless endpoints, and Network Volumes
-//! - **Flexible Grouping**: Group billing records by resource ID, GPU type, or endpoint
-//! - **Advanced Filtering**: Filter by time ranges, GPU types, data centers, and resource-specific criteria
-//! - **Detailed Breakdowns**: Get precise costs, disk usage, and time-based billing information
-//!
-//! # Core Types
-//!
-//! - [`BillingRecord`]: Individual billing record containing cost and usage information
-//! - [`BillingRecords`]: Collection of billing records returned by API calls
-//! - [`PodBillingQuery`]: Query parameters for retrieving Pod billing history
-//! - [`EndpointBillingQuery`]: Query parameters for retrieving Serverless endpoint billing history
-//! - [`NetworkVolumeBillingQuery`]: Query parameters for retrieving Network Volume billing history
-//! - [`BucketSize`]: Time bucket granularity for aggregating billing records
-//! - [`BillingGrouping`]: Grouping options for organizing billing data
-//!
-//! # Billing Data Structure
-//!
-//! All billing records share a common structure with resource-specific fields:
-//!
-//! - **Amount**: Cost in USD for the billing period
-//! - **Time**: Start timestamp of the billing period
-//! - **Usage Metrics**: Time billed, disk space usage, and resource-specific data
-//! - **Resource Identifiers**: Pod ID, endpoint ID, or GPU type ID depending on grouping
-//!
-//! # Time Buckets
-//!
-//! Billing data can be aggregated into different time buckets using [`BucketSize`]:
-//!
-//! - **Hour**: Hourly billing records for detailed analysis
-//! - **Day**: Daily aggregation (default for most queries)
-//! - **Week**: Weekly summaries for trend analysis
-//! - **Month**: Monthly billing for accounting purposes
-//! - **Year**: Yearly totals for long-term cost tracking
-//!
-//! # Grouping Options
-//!
-//! Control how billing records are organized using [`BillingGrouping`]:
-//!
-//! - **By Resource ID**: Group by individual Pod, endpoint, or Network Volume
-//! - **By GPU Type**: Aggregate costs across all resources using the same GPU type
-//! - **By Endpoint**: Group Serverless billing by endpoint (default for Serverless)
-//!
-//! # Examples
-//!
-//! ```rust
-//! use runpod_sdk::model::billing::{PodBillingQuery, BucketSize, BillingGrouping};
-//!
-//! // Query daily Pod billing grouped by GPU type
-//! let query = PodBillingQuery {
-//!     bucket_size: Some(BucketSize::Day),
-//!     grouping: Some(BillingGrouping::GpuTypeId),
-//!     start_time: Some("2023-01-01T00:00:00Z".to_string()),
-//!     end_time: Some("2023-01-31T23:59:59Z".to_string()),
-//!     ..Default::default()
-//! };
-//! ```
-
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "strum")]
 use strum::{Display, EnumString};
@@ -83,7 +16,7 @@ use super::common::GpuTypeId;
 /// - **Week**: Weekly trends and medium-term analysis
 /// - **Month**: Monthly accounting and budget tracking
 /// - **Year**: Long-term cost analysis and yearly planning
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[cfg_attr(feature = "strum", derive(Display, EnumString))]
 #[serde(rename_all = "lowercase")]
 #[cfg_attr(feature = "strum", strum(serialize_all = "lowercase"))]
@@ -91,6 +24,7 @@ pub enum BucketSize {
     /// Hourly billing aggregation for detailed analysis.
     Hour,
     /// Daily billing aggregation (default for most queries).
+    #[default]
     Day,
     /// Weekly billing aggregation for trend analysis.
     Week,
@@ -110,13 +44,14 @@ pub enum BucketSize {
 /// - **PodId**: Individual Pod-level billing (detailed per-resource view)
 /// - **EndpointId**: Individual endpoint-level billing (default for Serverless)
 /// - **GpuTypeId**: Aggregate by GPU type (useful for capacity planning)
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[cfg_attr(feature = "strum", derive(Display, EnumString))]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "strum", strum(serialize_all = "camelCase"))]
 pub enum BillingGrouping {
     /// Group billing records by individual Pod ID.
     /// Provides detailed per-Pod cost breakdown.
+    #[default]
     PodId,
     /// Group billing records by individual endpoint ID.
     /// Default grouping for Serverless endpoint billing.
@@ -196,7 +131,7 @@ pub type BillingRecords = Vec<BillingRecord>;
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::billing::{PodBillingQuery, BucketSize};
+/// use runpod_sdk::model::{PodBillingQuery, BucketSize};
 ///
 /// // Query for a specific Pod's hourly billing
 /// let query = PodBillingQuery {
@@ -259,7 +194,7 @@ pub struct PodBillingQuery {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::billing::{EndpointBillingQuery, BucketSize, BillingGrouping};
+/// use runpod_sdk::model::{EndpointBillingQuery, BucketSize, BillingGrouping};
 ///
 /// // Query billing for endpoints in specific data centers
 /// let query = EndpointBillingQuery {
@@ -336,7 +271,7 @@ pub struct EndpointBillingQuery {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::billing::{NetworkVolumeBillingQuery, BucketSize};
+/// use runpod_sdk::model::{NetworkVolumeBillingQuery, BucketSize};
 ///
 /// // Query monthly billing for a specific Network Volume
 /// let query = NetworkVolumeBillingQuery {

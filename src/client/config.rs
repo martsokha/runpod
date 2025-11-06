@@ -139,7 +139,7 @@ impl RunpodConfig {
     ///
     /// let config = RunpodConfig::from_env().unwrap();
     /// ```
-    pub fn from_env() -> Result<Self, RunpodBuilderError> {
+    pub fn from_env() -> Result<Self> {
         let api_key = std::env::var("RUNPOD_API_KEY").map_err(|_| {
             RunpodBuilderError::ValidationError(
                 "RUNPOD_API_KEY environment variable not set".to_string(),
@@ -164,7 +164,7 @@ impl RunpodConfig {
             builder = builder.with_timeout(Duration::from_secs(timeout_secs));
         }
 
-        builder.build()
+        builder.build().map_err(Into::into)
     }
 
     /// Creates a new RunPod client using this configuration.

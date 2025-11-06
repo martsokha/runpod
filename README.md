@@ -8,13 +8,12 @@ A Rust client library for the [Runpod API](https://docs.runpod.io/). This SDK pr
 
 ## Features
 
-- **Full API Coverage**: Support for all Runpod REST API endpoints
-- **Type-Safe**: Strongly typed models with derive builder support
-- **Async/Await**: Built on `reqwest` with async/await support
-- **Well Documented**: Comprehensive documentation with examples
-- **Easy Configuration**: Builder pattern for client configuration
-- **Optional Features**: Modular features for enum conversions and tracing
-- **Secure**: API keys are automatically masked in debug output
+- **Pod Management**: Complete lifecycle operations (create, list, update, delete, start, stop, etc.)
+- **Serverless Endpoints**: Full endpoint management with auto-scaling configuration
+- **Template Management**: Reusable pod templates with custom configurations
+- **Network Volumes**: Persistent storage volumes across pods
+- **Type Safety**: Strongly typed models with comprehensive validation
+- **Async/Await**: Built on modern async Rust with `tokio` and `reqwest`
 
 ## Installation
 
@@ -22,24 +21,27 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-runpod-sdk = "0.1.0"
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
+runpod-sdk = { version = "0.1", features = [] }
 ```
 
 ## Quick Start
 
-```rust
-use runpod_sdk::{RunpodClient, RunpodConfig};
+### Builder Configuration
+
+```rust,no_run
+use runpod_sdk::RunpodConfig;
 use runpod_sdk::model::ListPodsQuery;
+use std::time::Duration;
 
 #[tokio::main]
 async fn main() -> runpod_sdk::Result<()> {
-    // Create a client with your API key
     let client = RunpodConfig::builder()
         .with_api_key("your-api-key")
+        .with_base_url("https://api.runpod.io/v1")
+        .with_timeout(Duration::from_secs(60))
         .build_client()?;
 
-    // List all pods
     let pods = client.pods().list(ListPodsQuery::default()).await?;
     println!("Found {} pods", pods.len());
 
@@ -47,159 +49,52 @@ async fn main() -> runpod_sdk::Result<()> {
 }
 ```
 
-## Optional Features
-
-The SDK includes several optional features that can be enabled as needed:
-
-### TLS Backend
-
-The SDK supports two TLS backends for HTTPS connections:
-
-#### Rustls (Default)
-
-The default TLS backend uses `rustls`, a modern TLS library written in Rust:
-
-```toml
-[dependencies]
-runpod-sdk = "0.1.0"  # rustls-tls enabled by default
-```
-
-#### Native TLS
-
-Alternatively, you can use the system's native TLS implementation:
-
-```toml
-[dependencies]
-runpod-sdk = { version = "0.1.0", features = ["native-tls"], default-features = false }
-```
-
-**When to use native-tls:**
-- Corporate environments with custom CA certificates
-- Systems where native TLS is required for compliance
-- Environments where rustls compatibility issues arise
-
-**When to use rustls-tls (default):**
-- Most applications and development environments
-- Better performance and security guarantees
-- Smaller binary size and fewer system dependencies
-
-### Tracing
-
-Enable comprehensive logging and tracing support:
-
-```toml
-[dependencies]
-runpod-sdk = { version = "0.1.0", features = ["tracing"] }
-```
-
-This adds trace-level logs for HTTP requests and debug-level logs for client operations.
-
-### Enum String Conversions
-
-Enable string conversion methods for all enums:
-
-```toml
-[dependencies]
-runpod-sdk = { version = "0.1.0", features = ["strum"] }
-```
-
-When enabled, all enums support parsing from and converting to strings:
-
-```rust
-#[cfg(feature = "strum")]
-use std::str::FromStr;
-#[cfg(feature = "strum")]  
-use runpod_sdk::model::{ComputeType, PodStatus};
-
-#[cfg(feature = "strum")]
-fn example() -> Result<(), Box<dyn std::error::Error>> {
-    // Convert from string
-    let compute_type = ComputeType::from_str("GPU")?;
-
-    // Convert to string  
-    let status_str = PodStatus::Running.to_string(); // "RUNNING"
-    Ok(())
-}
-```
-
-### All Features
-
-Enable all optional features with rustls-tls (default):
-
-```toml
-[dependencies]
-runpod-sdk = { version = "0.1.0", features = ["tracing", "strum"] }
-```
-
-Or with native-tls:
-
-```toml
-[dependencies]
-runpod-sdk = { version = "0.1.0", features = ["native-tls", "tracing", "strum"], default-features = false }
-```
-
-## Configuration Options
-
-The SDK offers flexible configuration with multiple approaches:
-
-### Quick Start with Builder
-
-```rust
-use runpod_sdk::RunpodConfig;
-
-fn example() -> runpod_sdk::Result<()> {
-    let client = RunpodConfig::builder()
-        .with_api_key("your-api-key")
-        .build_client()?;
-    
-    Ok(())
-}
-```
-
 ### Environment Variables
 
-```rust
+```rust,no_run
 use runpod_sdk::RunpodConfig;
 
-fn example() -> runpod_sdk::Result<()> {
+#[tokio::main]
+async fn main() -> runpod_sdk::Result<()> {
     // Uses RUNPOD_API_KEY, RUNPOD_BASE_URL, RUNPOD_TIMEOUT_SECS
     let client = RunpodConfig::from_env()?.build_client()?;
     Ok(())
 }
 ```
 
-### Advanced Configuration
+## Optional Features
 
-```rust
-use runpod_sdk::RunpodConfig;
-use std::time::Duration;
+### TLS Backend
 
-fn example() -> runpod_sdk::Result<()> {
-    let client = RunpodConfig::builder()
-        .with_api_key("your-api-key")
-        .with_base_url("https://api.runpod.io/v1")
-        .with_timeout(Duration::from_secs(60))
-        .build_client()?;
-    Ok(())
-}
+Choose between two TLS implementations:
+
+```toml
+# Default: rustls-tls (recommended)
+runpod-sdk = { version = "0.1.0", features = [] }
+
+# Alternative: native-tls
+runpod-sdk = { version = "0.1.0", features = ["native-tls"], default-features = false }
 ```
 
-## Additional Features
+### Tracing Support
 
-The SDK provides comprehensive support for all RunPod API operations including:
+Enable comprehensive logging and tracing:
 
-- **Pods**: Complete lifecycle management (create, list, get, update, delete, start, stop, reset, restart)
-- **Serverless Endpoints**: Full endpoint management and scaling configuration
-- **Templates**: Template creation and management for reusable configurations  
-- **Network Volumes**: Storage volume provisioning and management
-- **Container Registry**: Authentication and registry management
-- **Billing**: Detailed usage and billing information retrieval
+```toml
+runpod-sdk = { version = "0.1.0", features = ["tracing"] }
+```
 
-For complete API documentation and examples, see the [full documentation on docs.rs](https://docs.rs/runpod-sdk).
+### Enum String Conversions
+
+Enable string parsing and conversion for all enums:
+
+```toml
+runpod-sdk = { version = "0.1.0", features = ["strum"] }
+```
 
 ## Examples
 
-The `examples/` directory contains comprehensive usage examples. To run them:
+The `examples/` directory contains comprehensive usage examples:
 
 ```bash
 # Set your API key
@@ -210,6 +105,9 @@ cargo run --example basic_usage
 
 # Run the endpoints management example
 cargo run --example manage_endpoints
+
+# Run the pods management example
+cargo run --example manage_pods
 ```
 
 ## Contributing
@@ -224,3 +122,4 @@ This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.t
 
 - [Runpod Documentation](https://docs.runpod.io/)
 - [Runpod API Reference](https://rest.runpod.io/v1/docs)
+- [Full API Documentation](https://docs.rs/runpod-sdk)

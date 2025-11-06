@@ -34,14 +34,14 @@ impl TemplatesService {
     ///     container_registry_auth_id: None,
     ///     env: None,
     ///     readme: None,
-    ///     is_template: None,
     ///     is_public: None,
     ///     is_serverless: None,
-    ///     runtime: None,
     ///     ports: None,
     ///     volume_in_gb: None,
     ///     container_disk_in_gb: None,
     ///     volume_mount_path: None,
+    ///     category: None,
+    ///     docker_entrypoint: None,
     /// };
     ///
     /// let template = client.templates().create(input).await?;

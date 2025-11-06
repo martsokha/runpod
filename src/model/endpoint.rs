@@ -1,145 +1,3 @@
-//! Serverless endpoint models and related types for the RunPod API.
-//!
-//! This module contains all the data structures and types needed to work with RunPod Serverless Endpoints,
-//! which provide auto-scaling, on-demand compute infrastructure for AI/ML workloads and applications.
-//!
-//! # Overview
-//!
-//! Serverless endpoints provide scalable, event-driven compute that automatically manages infrastructure
-//! based on request load. They offer:
-//!
-//! - **Auto-scaling**: Workers automatically spin up/down based on request queue and configured policies
-//! - **Template-based Deployment**: Consistent environments using pre-configured templates
-//! - **Multi-region Distribution**: Deploy across multiple data centers for global availability
-//! - **Cost Optimization**: Pay only for compute time used, with idle scaling to minimize costs
-//! - **High Availability**: Automatic failover and redundancy across available infrastructure
-//! - **Flexible Compute Types**: Support for both GPU-accelerated and CPU-only workloads
-//!
-//! # Core Types
-//!
-//! - [`Endpoint`]: The main serverless endpoint resource with full configuration and status
-//! - [`EndpointCreateInput`]: Parameters for creating new serverless endpoints
-//! - [`EndpointUpdateInput`]: Parameters for updating existing endpoints (triggers rolling updates)
-//! - [`ScalerType`]: Scaling strategy enumeration (queue delay vs request count based)
-//! - [`ListEndpointsQuery`]: Query parameters for listing endpoints with optional includes
-//! - [`GetEndpointQuery`]: Query parameters for retrieving individual endpoints
-//! - [`Endpoints`]: Type alias for collections of endpoints
-//!
-//! # Endpoint Lifecycle
-//!
-//! 1. **Creation**: Define compute requirements, scaling policy, and deployment template
-//! 2. **Deployment**: Workers are provisioned across specified data centers
-//! 3. **Auto-scaling**: System responds to request load by scaling workers up/down
-//! 4. **Management**: Update configuration, monitor performance, manage costs
-//! 5. **Termination**: Delete when no longer needed to stop all billing
-//!
-//! # Scaling Strategies
-//!
-//! ## Queue Delay Scaling (`QUEUE_DELAY`)
-//! - **Use case**: Latency-sensitive applications requiring predictable response times
-//! - **Behavior**: Scales up when requests wait longer than `scaler_value` seconds
-//! - **Best for**: Real-time inference, interactive applications, SLA requirements
-//! - **Trade-off**: May maintain higher baseline costs to ensure responsiveness
-//!
-//! ## Request Count Scaling (`REQUEST_COUNT`)
-//! - **Use case**: Throughput-oriented applications with flexible response times
-//! - **Behavior**: Maintains `queue_size / scaler_value` workers to handle load
-//! - **Best for**: Batch processing, background tasks, cost-optimized workloads
-//! - **Trade-off**: May have higher latency spikes during traffic bursts
-//!
-//! # Compute Types
-//!
-//! ## GPU Endpoints
-//! - **Hardware**: NVIDIA GPUs (RTX, Tesla, H100 series) for AI/ML acceleration
-//! - **Use cases**: Machine learning inference, image/video processing, AI training
-//! - **Configuration**: GPU type selection, CUDA version constraints, multi-GPU support
-//! - **Performance**: High-throughput parallel processing with specialized AI frameworks
-//!
-//! ## CPU Endpoints
-//! - **Hardware**: High-performance x86 CPUs with flexible vCPU allocation
-//! - **Use cases**: Web APIs, data processing, general computation, microservices
-//! - **Configuration**: CPU flavor selection, vCPU count, memory optimization
-//! - **Cost**: Lower cost per hour, ideal for CPU-bound workloads
-//!
-//! # Template Integration
-//!
-//! Endpoints are deployed using templates that define:
-//! - **Container Image**: Docker image with application code and dependencies
-//! - **Environment**: Runtime configuration, environment variables, startup commands
-//! - **Resources**: Compute requirements, storage allocation, network configuration
-//! - **Ports**: Exposed services and networking setup
-//!
-//! # Performance Optimization
-//!
-//! ## Flash Boot
-//! - **Purpose**: Dramatically reduce worker startup time (seconds vs minutes)
-//! - **Mechanism**: Pre-warmed container images with cached dependencies
-//! - **Trade-off**: Higher per-request cost for faster cold start performance
-//! - **Best for**: Interactive applications, real-time inference, low-latency requirements
-//!
-//! ## Data Center Strategy
-//! - **Global Distribution**: Deploy across multiple regions for user proximity
-//! - **Availability**: Automatic failover between data centers during outages
-//! - **Latency**: Choose regions close to your users and data sources
-//! - **Compliance**: Consider data sovereignty and regulatory requirements
-//!
-//! # Cost Management
-//!
-//! - **Worker Minutes**: Billed for actual compute time while workers are running
-//! - **Idle Timeout**: Automatic worker shutdown to minimize costs during low usage
-//! - **Min Workers**: Reserved capacity that runs continuously (lower rate, always charged)
-//! - **Max Workers**: Burst capacity limit to control maximum spend
-//! - **Request-based Billing**: Only pay when workers are processing requests
-//!
-//! # Examples
-//!
-//! ```rust
-//! use runpod_sdk::model::endpoint::{EndpointCreateInput, EndpointUpdateInput, ScalerType};
-//! use runpod_sdk::model::common::{ComputeType, CudaVersion};
-//!
-//! // Create a high-performance GPU endpoint for real-time AI inference
-//! let ai_endpoint = EndpointCreateInput {
-//!     template_id: "my-pytorch-template".to_string(),
-//!     name: Some("production-ai-inference".to_string()),
-//!     compute_type: Some(ComputeType::Gpu),
-//!     gpu_count: Some(1),
-//!     gpu_type_ids: Some(vec!["NVIDIA A100 80GB PCIe".to_string()]),
-//!     allowed_cuda_versions: Some(vec![CudaVersion::V12_1]),
-//!     scaler_type: Some(ScalerType::QueueDelay),
-//!     scaler_value: Some(2), // Scale up if requests wait > 2 seconds
-//!     workers_min: Some(1),  // Always keep 1 worker warm
-//!     workers_max: Some(10), // Burst up to 10 workers
-//!     idle_timeout: Some(30), // Shutdown after 30s idle
-//!     flashboot: Some(true), // Enable fast startup
-//!     execution_timeout_ms: Some(300000), // 5 minute max execution
-//!     ..Default::default()
-//! };
-//!
-//! // Create a cost-optimized CPU endpoint for batch processing
-//! let batch_endpoint = EndpointCreateInput {
-//!     template_id: "data-processing-template".to_string(),
-//!     name: Some("batch-data-processor".to_string()),
-//!     compute_type: Some(ComputeType::Cpu),
-//!     vcpu_count: Some(4),
-//!     scaler_type: Some(ScalerType::RequestCount),
-//!     scaler_value: Some(5), // 1 worker per 5 queued requests
-//!     workers_min: Some(0),  // No reserved capacity
-//!     workers_max: Some(50), // Large burst capacity
-//!     idle_timeout: Some(60), // Aggressive idle shutdown
-//!     flashboot: Some(false), // Standard startup (lower cost)
-//!     execution_timeout_ms: Some(3600000), // 1 hour max execution
-//!     ..Default::default()
-//! };
-//!
-//! // Update endpoint to handle increased load
-//! let scale_up_update = EndpointUpdateInput {
-//!     workers_max: Some(20),  // Double max capacity
-//!     scaler_value: Some(1),  // More aggressive scaling
-//!     flashboot: Some(true),  // Enable fast startup
-//!     ..Default::default()
-//! };
-//! ```
-
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "strum")]
 use strum::{Display, EnumString};
@@ -172,7 +30,7 @@ use super::template::Template;
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::endpoint::ScalerType;
+/// use runpod_sdk::model::ScalerType;
 ///
 /// // For real-time AI inference requiring <3s response times
 /// let latency_optimized = ScalerType::QueueDelay;
@@ -182,13 +40,14 @@ use super::template::Template;
 /// let cost_optimized = ScalerType::RequestCount;
 /// // scaler_value = 10 means maintain 1 worker per 10 queued requests
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[cfg_attr(feature = "strum", derive(Display, EnumString))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[cfg_attr(feature = "strum", strum(serialize_all = "SCREAMING_SNAKE_CASE"))]
 pub enum ScalerType {
     /// Queue delay-based scaling - prioritizes response time consistency.
     /// Scales up when requests wait longer than the threshold.
+    #[default]
     QueueDelay,
     /// Request count-based scaling - optimizes for throughput and cost.
     /// Maintains workers proportional to queue depth.
@@ -212,7 +71,7 @@ pub enum ScalerType {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::endpoint::Endpoint;
+/// use runpod_sdk::model::Endpoint;
 ///
 /// // Endpoint instances are typically obtained from API responses
 /// // when listing, creating, or retrieving serverless endpoints
@@ -389,8 +248,8 @@ pub type Endpoints = Vec<Endpoint>;
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::endpoint::{EndpointCreateInput, ScalerType};
-/// use runpod_sdk::model::common::{ComputeType, CudaVersion};
+/// use runpod_sdk::model::{EndpointCreateInput, ScalerType};
+/// use runpod_sdk::model::{ComputeType, CudaVersion, GpuTypeId};
 ///
 /// // High-performance GPU endpoint for real-time AI inference
 /// let inference_endpoint = EndpointCreateInput {
@@ -398,7 +257,7 @@ pub type Endpoints = Vec<Endpoint>;
 ///     name: Some("ai-inference-prod".to_string()),
 ///     compute_type: Some(ComputeType::Gpu),
 ///     gpu_count: Some(1),
-///     gpu_type_ids: Some(vec!["NVIDIA A100 80GB PCIe".to_string()]),
+///     gpu_type_ids: Some(vec![GpuTypeId::NvidiaA100_80GbPcie]),
 ///     allowed_cuda_versions: Some(vec![CudaVersion::V12_1]),
 ///     scaler_type: Some(ScalerType::QueueDelay),
 ///     scaler_value: Some(3), // Scale if requests wait >3 seconds
@@ -689,7 +548,7 @@ pub struct EndpointCreateInput {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::endpoint::{EndpointUpdateInput, ScalerType};
+/// use runpod_sdk::model::{EndpointUpdateInput, ScalerType};
 ///
 /// // Scale up for increased traffic
 /// let scale_up = EndpointUpdateInput {
@@ -825,6 +684,7 @@ pub struct EndpointUpdateInput {
     /// **Strategies:**
     /// - `QueueDelay`: Scale based on request wait time
     /// - `RequestCount`: Scale based on queue depth
+    ///
     /// **Note**: Set to `None` to keep current strategy unchanged.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub scaler_type: Option<ScalerType>,
@@ -894,7 +754,7 @@ pub struct EndpointUpdateInput {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::endpoint::ListEndpointsQuery;
+/// use runpod_sdk::model::ListEndpointsQuery;
 ///
 /// // Basic listing (endpoints only)
 /// let basic_query = ListEndpointsQuery::default();
@@ -948,7 +808,7 @@ pub struct ListEndpointsQuery {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::endpoint::GetEndpointQuery;
+/// use runpod_sdk::model::GetEndpointQuery;
 ///
 /// // Basic endpoint information only
 /// let basic_query = GetEndpointQuery::default();

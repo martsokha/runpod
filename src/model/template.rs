@@ -1,97 +1,3 @@
-//! Template models and related types for the RunPod API.
-//!
-//! This module contains all the data structures and types needed to work with RunPod Templates,
-//! which are reusable configurations for deploying Pods and Serverless endpoints with
-//! predefined settings, Docker images, and resource requirements.
-//!
-//! # Overview
-//!
-//! RunPod Templates provide a powerful abstraction layer for standardizing deployments:
-//!
-//! - **Reusable Configurations**: Save common deployment settings as templates for consistent reproduction
-//! - **Dual-purpose Design**: Use the same template for both Pods and Serverless endpoints
-//! - **Community Sharing**: Create public templates for the RunPod community or keep them private
-//! - **Official Templates**: Access curated templates maintained by RunPod for popular frameworks
-//! - **Revenue Sharing**: Earn RunPod credits when others use your public templates
-//! - **Rolling Updates**: Template changes trigger automatic rolling releases for associated endpoints
-//!
-//! # Core Types
-//!
-//! - [`Template`]: The main template resource containing all configuration and metadata
-//! - [`TemplateCreateInput`]: Parameters for creating new templates with comprehensive configuration options
-//! - [`TemplateUpdateInput`]: Parameters for updating existing templates (triggers rolling releases)
-//! - [`Templates`]: Collection of template records returned by API calls
-//! - [`TemplateCategory`]: Compute category classification (NVIDIA, AMD, CPU)
-//! - [`ListTemplatesQuery`]: Query parameters for filtering template listings
-//! - [`GetTemplateQuery`]: Query parameters for retrieving individual templates
-//!
-//! # Template Types
-//!
-//! Templates can be configured for different deployment targets:
-//!
-//! ## Pod Templates
-//! - **Purpose**: Persistent, long-running compute instances
-//! - **Use Cases**: Development environments, training jobs, interactive workloads
-//! - **Features**: Full container control, persistent storage, public IP access
-//! - **Billing**: Continuous billing while running
-//!
-//! ## Serverless Templates
-//! - **Purpose**: Auto-scaling, event-driven compute functions
-//! - **Use Cases**: API inference, batch processing, on-demand workloads
-//! - **Features**: Auto-scaling, cold start optimization, request-based billing
-//! - **Billing**: Pay per execution time and requests
-//!
-//! # Template Categories
-//!
-//! Templates are classified by their primary compute requirements:
-//!
-//! - **NVIDIA**: GPU-accelerated workloads using NVIDIA graphics cards
-//! - **AMD**: GPU-accelerated workloads using AMD graphics cards
-//! - **CPU**: CPU-only workloads for general compute tasks
-//!
-//! # Visibility and Sharing
-//!
-//! Templates support different visibility levels:
-//!
-//! - **Private Templates**: Only accessible to the creator
-//! - **Public Templates**: Shared with the RunPod community, can earn revenue
-//! - **Official Templates**: Curated and maintained by RunPod team
-//!
-//! # Storage Configuration
-//!
-//! Templates define storage allocation for deployed instances:
-//!
-//! - **Container Disk**: Fast, ephemeral storage that's wiped on restart
-//! - **Pod Volume**: Persistent local storage that survives restarts
-//! - **Network Volumes**: Shared, persistent storage (configured separately)
-//!
-//! # Examples
-//!
-//! ```rust
-//! use runpod_sdk::model::template::{TemplateCreateInput, TemplateCategory};
-//! use std::collections::HashMap;
-//!
-//! // Create a PyTorch training template
-//! let template_input = TemplateCreateInput {
-//!     name: "PyTorch Training".to_string(),
-//!     image_name: "pytorch/pytorch:2.1.0-cuda11.8-cudnn8-devel".to_string(),
-//!     category: Some(TemplateCategory::Nvidia),
-//!     container_disk_in_gb: Some(100),
-//!     volume_in_gb: Some(50),
-//!     volume_mount_path: Some("/workspace".to_string()),
-//!     env: Some({
-//!         let mut env = HashMap::new();
-//!         env.insert("CUDA_VISIBLE_DEVICES".to_string(), "0".to_string());
-//!         env.insert("PYTHONPATH".to_string(), "/workspace".to_string());
-//!         env
-//!     }),
-//!     ports: Some(vec!["8888/http".to_string(), "6006/http".to_string()]),
-//!     is_public: Some(false),
-//!     is_serverless: Some(false),
-//!     ..Default::default()
-//! };
-//! ```
-
 use serde::{Deserialize, Serialize};
 
 use super::common::*;
@@ -106,12 +12,13 @@ use super::common::*;
 /// - **NVIDIA**: Templates optimized for NVIDIA GPU acceleration
 /// - **AMD**: Templates optimized for AMD GPU acceleration
 /// - **CPU**: Templates for CPU-only compute workloads
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum TemplateCategory {
     /// NVIDIA GPU-accelerated compute template.
     /// Optimized for workloads requiring NVIDIA CUDA capabilities,
     /// such as deep learning, scientific computing, and graphics processing.
     #[serde(rename = "NVIDIA")]
+    #[default]
     Nvidia,
 
     /// AMD GPU-accelerated compute template.
@@ -144,9 +51,10 @@ pub enum TemplateCategory {
 /// # Revenue Model
 ///
 /// Public templates can generate revenue for their creators:
+///
 /// - Users pay standard RunPod rates for compute resources
 /// - Template creators earn a percentage of compute costs
-/// - Earnings are tracked in the [`earned`] field
+/// - Earnings are tracked in the `earned` field
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Template {
@@ -253,8 +161,8 @@ pub type Templates = Vec<Template>;
 ///
 /// # Required Fields
 ///
-/// - [`name`]: Unique, descriptive template name
-/// - [`image_name`]: Docker image for container deployment
+/// - `name`: Unique, descriptive template name
+/// - `image_name`: Docker image for container deployment
 ///
 /// # Default Behavior
 ///
@@ -270,30 +178,15 @@ pub type Templates = Vec<Template>;
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::template::{TemplateCreateInput, TemplateCategory};
+/// use runpod_sdk::model::{TemplateCreateInput, TemplateCategory};
 ///
-/// // Minimal template creation
 /// let basic_template = TemplateCreateInput {
 ///     name: "My Basic Template".to_string(),
 ///     image_name: "python:3.9".to_string(),
 ///     ..Default::default()
 /// };
-///
-/// // Advanced Serverless template with custom configuration
-/// let serverless_template = TemplateCreateInput {
-///     name: "FastAPI Inference".to_string(),
-///     image_name: "my-registry/fastapi-model:latest".to_string(),
-///     category: Some(TemplateCategory::Nvidia),
-///     container_disk_in_gb: Some(100),
-///     volume_in_gb: Some(25),
-///     is_serverless: Some(true),
-///     is_public: Some(true),
-///     ports: Some(vec!["8000/http".to_string()]),
-///     readme: Some("# FastAPI Model Inference\n\nThis template provides...".to_string()),
-///     ..Default::default()
-/// };
 /// ```
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TemplateCreateInput {
     /// A user-defined name for the template.
@@ -401,7 +294,7 @@ pub struct TemplateCreateInput {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::template::TemplateUpdateInput;
+/// use runpod_sdk::model::TemplateUpdateInput;
 ///
 /// // Update only the Docker image
 /// let image_update = TemplateUpdateInput {
@@ -508,7 +401,7 @@ pub struct TemplateUpdateInput {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::template::ListTemplatesQuery;
+/// use runpod_sdk::model::ListTemplatesQuery;
 ///
 /// // Get all available templates (private + public + official)
 /// let all_templates = ListTemplatesQuery {
@@ -560,7 +453,7 @@ pub struct ListTemplatesQuery {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::template::GetTemplateQuery;
+/// use runpod_sdk::model::GetTemplateQuery;
 ///
 /// // Access any type of template
 /// let query = GetTemplateQuery {

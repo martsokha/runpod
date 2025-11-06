@@ -3,12 +3,7 @@ use runpod_sdk::{Result, RunpodClient, RunpodConfig};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Create a client with your API key
-    let api_key =
-        std::env::var("RUNPOD_API_KEY").expect("RUNPOD_API_KEY environment variable not set");
-
-    let config = RunpodConfig::builder().with_api_key(api_key).build()?;
-
+    let config = RunpodConfig::from_env()?;
     let client = RunpodClient::new(config)?;
 
     // List all pods

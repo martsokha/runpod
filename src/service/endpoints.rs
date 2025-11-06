@@ -32,15 +32,7 @@ impl EndpointsService {
     ///     name: Some("My Endpoint".to_string()),
     ///     workers_max: Some(3),
     ///     workers_min: Some(0),
-    ///     scaler_type: None,
-    ///     scaler_value: None,
-    ///     active_workers: None,
-    ///     gpu_ids: None,
-    ///     network_volume_id: None,
-    ///     locations: None,
-    ///     idle_timeout: None,
-    ///     scaler_settings: None,
-    ///     network_volume_ids: None,
+    ///     ..Default::default()
     /// };
     ///
     /// let endpoint = client.endpoints().create(input).await?;

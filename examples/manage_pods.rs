@@ -6,10 +6,7 @@ use tokio::time::sleep;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let api_key =
-        std::env::var("RUNPOD_API_KEY").expect("RUNPOD_API_KEY environment variable not set");
-
-    let config = RunpodConfig::builder().with_api_key(api_key).build()?;
+    let config = RunpodConfig::from_env()?;
     let client = RunpodClient::new(config)?;
 
     // List existing pods

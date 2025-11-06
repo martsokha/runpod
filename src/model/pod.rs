@@ -1,109 +1,3 @@
-//! Pod models and related types for the RunPod API.
-//!
-//! This module contains all the data structures and types needed to work with RunPod Pods,
-//! which are containerized compute instances that can be deployed with either GPU or CPU resources.
-//!
-//! # Overview
-//!
-//! Pods are the fundamental compute units in RunPod's infrastructure. They provide:
-//!
-//! - **Flexible Compute**: Choose between GPU-accelerated or CPU-only instances
-//! - **Multiple Cloud Types**: Deploy to Secure Cloud (guaranteed resources) or Community Cloud (cost-effective)
-//! - **Persistent Storage**: Container disk (ephemeral) and Pod volumes (persistent across restarts)
-//! - **Network Volumes**: Shared, persistent storage that can be attached to multiple Pods
-//! - **Custom Environments**: Configure Docker images, environment variables, and startup commands
-//! - **Cost Optimization**: Interruptible (spot) instances and Savings Plans for reduced costs
-//!
-//! # Core Types
-//!
-//! - [`Pod`]: The main Pod resource containing all configuration and status information
-//! - [`PodCreateInput`]: Parameters for creating new Pods with comprehensive configuration options
-//! - [`PodUpdateInput`]: Parameters for updating existing Pods (triggers a reset)
-//! - [`ListPodsQuery`]: Query parameters for filtering and customizing Pod list operations
-//! - [`GetPodQuery`]: Query parameters for retrieving individual Pods with additional details
-//!
-//! # Pod Lifecycle
-//!
-//! 1. **Creation**: Use [`PodCreateInput`] to specify compute requirements, image, and configuration
-//! 2. **Running**: Monitor status via [`PodStatus`] (Running, Exited, Terminated)
-//! 3. **Management**: Update configuration, start/stop, reset, or restart operations
-//! 4. **Termination**: Delete when no longer needed to stop billing
-//!
-//! # Compute Types
-//!
-//! - **GPU Pods**: Accelerated compute with NVIDIA GPUs for AI/ML workloads
-//!   - Choose from various GPU types ([`GpuTypeId`]) including RTX, Tesla, and H100 series
-//!   - Specify GPU count, memory per GPU, and CUDA version requirements
-//!   - Access to high-performance networking and specialized AI frameworks
-//!
-//! - **CPU Pods**: Cost-effective compute for general-purpose workloads
-//!   - Various CPU flavors ([`CpuFlavorId`]) optimized for compute, memory, or general use
-//!   - Flexible vCPU allocation and memory configurations
-//!   - Ideal for web services, batch processing, and development environments
-//!
-//! # Storage Options
-//!
-//! - **Container Disk**: Fast local storage that's wiped on Pod restart
-//! - **Pod Volume**: Persistent local storage that survives restarts
-//! - **Network Volume**: Shared persistent storage accessible across multiple Pods
-//!
-//! # Examples
-//!
-//! ## Creating a GPU Pod for AI/ML
-//!
-//! ```rust
-//! use runpod_sdk::model::pod::PodCreateInput;
-//! use runpod_sdk::model::common::{ComputeType, CloudType, GpuTypeId};
-//!
-//! let gpu_pod = PodCreateInput {
-//!     name: Some("ml-training-pod".to_string()),
-//!     image_name: Some("runpod/pytorch:2.1.0-py3.10-cuda11.8.0-devel".to_string()),
-//!     compute_type: Some(ComputeType::Gpu),
-//!     cloud_type: Some(CloudType::Secure),
-//!     gpu_count: Some(1),
-//!     gpu_type_ids: Some(vec![GpuTypeId::NvidiaGeForceRtx4090]),
-//!     container_disk_in_gb: Some(100),
-//!     volume_in_gb: Some(50),
-//!     ports: Some(vec!["8888/http".to_string(), "22/tcp".to_string()]),
-//!     env: Some([("JUPYTER_ENABLE_LAB".to_string(), "yes".to_string())].into()),
-//!     ..Default::default()
-//! };
-//! ```
-//!
-//! ## Creating a CPU Pod for web services
-//!
-//! ```rust
-//! use runpod_sdk::model::pod::PodCreateInput;
-//! use runpod_sdk::model::common::{ComputeType, CloudType, CpuFlavorId};
-//!
-//! let web_pod = PodCreateInput {
-//!     name: Some("web-server".to_string()),
-//!     image_name: Some("nginx:alpine".to_string()),
-//!     compute_type: Some(ComputeType::Cpu),
-//!     cloud_type: Some(CloudType::Community),
-//!     cpu_flavor_ids: Some(vec![CpuFlavorId::Cpu3g]),
-//!     vcpu_count: Some(2),
-//!     container_disk_in_gb: Some(20),
-//!     ports: Some(vec!["80/http".to_string()]),
-//!     ..Default::default()
-//! };
-//! ```
-//!
-//! ## Querying Pods with filters
-//!
-//! ```rust
-//! use runpod_sdk::model::pod::ListPodsQuery;
-//! use runpod_sdk::model::common::{ComputeType, PodStatus};
-//!
-//! let query = ListPodsQuery {
-//!     compute_type: Some(ComputeType::Gpu),
-//!     desired_status: Some(PodStatus::Running),
-//!     include_machine: Some(true),
-//!     include_savings_plans: Some(true),
-//!     ..Default::default()
-//! };
-//! ```
-
 use serde::{Deserialize, Serialize};
 
 use super::common::*;
@@ -117,7 +11,7 @@ use super::common::*;
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::pod::Pod;
+/// use runpod_sdk::model::Pod;
 ///
 /// // Pod instances are typically obtained from API responses
 /// // when listing, creating, or retrieving pods
@@ -230,8 +124,7 @@ pub type Pods = Vec<Pod>;
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::pod::PodCreateInput;
-/// use runpod_sdk::model::common::{ComputeType, CloudType};
+/// use runpod_sdk::model::{PodCreateInput, ComputeType, CloudType};
 ///
 /// let create_input = PodCreateInput {
 ///     name: Some("my-pod".to_string()),
@@ -379,7 +272,7 @@ pub struct PodCreateInput {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::pod::PodUpdateInput;
+/// use runpod_sdk::model::PodUpdateInput;
 ///
 /// let update_input = PodUpdateInput {
 ///     name: Some("updated-pod-name".to_string()),
@@ -442,8 +335,7 @@ pub struct PodUpdateInput {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::pod::ListPodsQuery;
-/// use runpod_sdk::model::common::{ComputeType, PodStatus};
+/// use runpod_sdk::model::{ListPodsQuery, ComputeType, PodStatus};
 ///
 /// let query = ListPodsQuery {
 ///     compute_type: Some(ComputeType::Gpu),
@@ -514,7 +406,7 @@ pub struct ListPodsQuery {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::pod::GetPodQuery;
+/// use runpod_sdk::model::GetPodQuery;
 ///
 /// let query = GetPodQuery {
 ///     include_machine: Some(true),

@@ -1,66 +1,3 @@
-//! Container registry authentication models for the RunPod API.
-//!
-//! This module contains all the data structures and types needed to manage container registry
-//! authentication credentials in RunPod. These credentials allow RunPod to pull private Docker
-//! images from protected container registries during Pod and Serverless endpoint deployment.
-//!
-//! # Overview
-//!
-//! RunPod's container registry authentication system enables secure access to private Docker images:
-//!
-//! - **Private Registry Support**: Authenticate with Docker Hub, AWS ECR, Google Container Registry, and other registries
-//! - **Secure Credential Storage**: Safely store registry credentials without exposing sensitive information
-//! - **Reusable Authentication**: Create named credentials that can be referenced across multiple deployments
-//! - **Pod Integration**: Seamlessly use private images in Pod and Serverless endpoint configurations
-//! - **Access Control**: Manage which images and registries your RunPod resources can access
-//!
-//! # Core Types
-//!
-//! - [`ContainerRegistryAuth`]: Represents stored container registry authentication credentials
-//! - [`ContainerRegistryAuthCreateInput`]: Input parameters for creating new registry authentication
-//! - [`ContainerRegistryAuths`]: Collection of container registry authentication records
-//!
-//! # Authentication Workflow
-//!
-//! 1. **Create Authentication**: Use [`ContainerRegistryAuthCreateInput`] to store registry credentials
-//! 2. **Reference in Deployments**: Use the authentication ID when creating Pods or endpoints with private images
-//! 3. **Automatic Access**: RunPod automatically uses the credentials to pull private images during deployment
-//! 4. **Management**: List, retrieve, and delete authentication records as needed
-//!
-//! # Supported Registries
-//!
-//! The authentication system works with any Docker-compatible registry:
-//!
-//! - **Docker Hub**: For private Docker Hub repositories
-//! - **AWS ECR**: Amazon Elastic Container Registry
-//! - **Google Container Registry (GCR)**: Google Cloud's container registry
-//! - **Azure Container Registry (ACR)**: Microsoft Azure's container registry
-//! - **GitHub Container Registry (GHCR)**: GitHub's container registry
-//! - **Self-hosted Registries**: Private Docker registries and Harbor installations
-//!
-//! # Security Considerations
-//!
-//! - Credentials are securely stored and encrypted by RunPod
-//! - Passwords and tokens are never returned in API responses
-//! - Use registry-specific access tokens instead of account passwords when possible
-//! - Regularly rotate authentication credentials for enhanced security
-//!
-//! # Examples
-//!
-//! ```rust
-//! use runpod_sdk::model::registry::ContainerRegistryAuthCreateInput;
-//!
-//! // Create authentication for a private Docker Hub repository
-//! let auth_input = ContainerRegistryAuthCreateInput {
-//!     name: "my-dockerhub-auth".to_string(),
-//!     username: "myusername".to_string(),
-//!     password: "my-access-token".to_string(),
-//! };
-//!
-//! // Authentication records are obtained from API responses
-//! // and contain only non-sensitive information
-//! ```
-
 use serde::{Deserialize, Serialize};
 
 /// Container registry authentication credentials.
@@ -113,7 +50,7 @@ pub type ContainerRegistryAuths = Vec<ContainerRegistryAuth>;
 ///
 /// ## Docker Hub
 /// ```rust
-/// # use runpod_sdk::model::registry::ContainerRegistryAuthCreateInput;
+/// # use runpod_sdk::model::ContainerRegistryAuthCreateInput;
 /// let docker_hub_auth = ContainerRegistryAuthCreateInput {
 ///     name: "dockerhub-production".to_string(),
 ///     username: "myusername".to_string(),
@@ -123,7 +60,7 @@ pub type ContainerRegistryAuths = Vec<ContainerRegistryAuth>;
 ///
 /// ## AWS ECR
 /// ```rust
-/// # use runpod_sdk::model::registry::ContainerRegistryAuthCreateInput;
+/// # use runpod_sdk::model::ContainerRegistryAuthCreateInput;
 /// let ecr_auth = ContainerRegistryAuthCreateInput {
 ///     name: "aws-ecr-us-west-2".to_string(),
 ///     username: "AWS".to_string(),
@@ -133,14 +70,14 @@ pub type ContainerRegistryAuths = Vec<ContainerRegistryAuth>;
 ///
 /// ## GitHub Container Registry
 /// ```rust
-/// # use runpod_sdk::model::registry::ContainerRegistryAuthCreateInput;
+/// # use runpod_sdk::model::ContainerRegistryAuthCreateInput;
 /// let ghcr_auth = ContainerRegistryAuthCreateInput {
 ///     name: "github-packages".to_string(),
 ///     username: "myusername".to_string(),
 ///     password: "ghp_1234567890abcdef".to_string(), // GitHub personal access token
 /// };
 /// ```
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ContainerRegistryAuthCreateInput {
     /// A user-defined name for the container registry authentication.

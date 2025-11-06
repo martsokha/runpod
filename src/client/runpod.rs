@@ -10,19 +10,102 @@ use crate::service::{
     VolumesService,
 };
 
+/// Main RunPod API client for interacting with all RunPod services.
+///
+/// The `RunpodClient` provides access to all RunPod API endpoints through specialized
+/// service interfaces. It handles authentication, request/response serialization,
+/// and provides a consistent async interface for all operations.
+///
+/// # Features
+///
+/// - **Thread-safe**: Safe to use across multiple threads
+/// - **Cheap to clone**: Uses `Arc` internally for efficient cloning
+/// - **Automatic authentication**: Handles API key authentication automatically
+/// - **Comprehensive coverage**: Access to all RunPod services (Pods, Endpoints, Templates, etc.)
+///
+/// # Services
+///
+/// The client provides access to these services:
+/// - [`pods()`](Self::pods) - Pod lifecycle management
+/// - [`endpoints()`](Self::endpoints) - Serverless endpoint operations
+/// - [`templates()`](Self::templates) - Template creation and management
+/// - [`volumes()`](Self::volumes) - Network volume operations
+/// - [`container_registry_auth()`](Self::container_registry_auth) - Registry authentication
+/// - [`billing()`](Self::billing) - Usage and billing information
+///
+/// # Examples
+///
+/// ## Basic usage with environment configuration
+///
+/// ```no_run
+/// use runpod_sdk::{RunpodConfig, model::ListPodsQuery};
+///
+/// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+/// let client = RunpodConfig::from_env()?.build_client()?;
+///
+/// // List all pods
+/// let pods = client.pods().list(ListPodsQuery::default()).await?;
+/// println!("Found {} pods", pods.len());
+/// # Ok(())
+/// # }
+/// ```
+///
+/// ## Custom configuration with builder pattern
+///
+/// ```no_run
+/// use runpod_sdk::RunpodConfig;
+/// use std::time::Duration;
+///
+/// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+/// let client = RunpodConfig::builder()
+///     .with_api_key("your-api-key")
+///     .with_base_url("https://api.runpod.io/v1")
+///     .with_timeout(Duration::from_secs(30))
+///     .build_client()?;
+///
+/// // Use different services
+/// let pods = client.pods().list(Default::default()).await?;
+/// let endpoints = client.endpoints().list(Default::default()).await?;
+/// let templates = client.templates().list(Default::default()).await?;
+/// # Ok(())
+/// # }
+/// ```
+///
+/// ## Multi-threaded usage
+///
+/// ```no_run
+/// use runpod_sdk::RunpodConfig;
+/// use std::sync::Arc;
+/// use tokio::task;
+///
+/// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+/// let client = Arc::new(RunpodConfig::from_env()?.build_client()?);
+///
+/// let handles: Vec<_> = (0..3).map(|i| {
+///     let client = Arc::clone(&client);
+///     task::spawn(async move {
+///         let pods = client.pods().list(Default::default()).await?;
+///         println!("Thread {}: Found {} pods", i, pods.len());
+///         Ok::<(), runpod_sdk::Error>(())
+///     })
+/// }).collect();
+///
+/// for handle in handles {
+///     handle.await??;
+/// }
+/// # Ok(())
+/// # }
+/// ```
+#[derive(Clone)]
+pub struct RunpodClient {
+    inner: Arc<RunpodClientInner>,
+}
+
 /// Inner client state that is shared via Arc for cheap cloning.
 #[derive(Debug)]
 struct RunpodClientInner {
     config: RunpodConfig,
     client: Client,
-}
-
-/// Main Runpod API client.
-///
-/// This client is cheap to clone as it uses Arc internally for shared state.
-#[derive(Clone)]
-pub struct RunpodClient {
-    inner: Arc<RunpodClientInner>,
 }
 
 impl RunpodClient {
@@ -38,32 +121,122 @@ impl RunpodClient {
         Ok(Self { inner })
     }
 
-    /// Gets the pods service.
+    /// Returns the pods service for Pod lifecycle operations.
+    ///
+    /// Provides access to Pod management including creation, listing, updates,
+    /// start/stop operations, and resource monitoring.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use runpod_sdk::RunpodConfig;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = RunpodConfig::from_env()?.build_client()?;
+    /// let pods_service = client.pods();
+    /// let all_pods = pods_service.list(Default::default()).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn pods(&self) -> PodsService {
         PodsService::new(self.clone())
     }
 
-    /// Gets the endpoints service.
+    /// Returns the endpoints service for Serverless endpoint management.
+    ///
+    /// Provides access to serverless endpoint operations including creation,
+    /// scaling configuration, deployment management, and monitoring.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use runpod_sdk::RunpodConfig;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = RunpodConfig::from_env()?.build_client()?;
+    /// let endpoints_service = client.endpoints();
+    /// let endpoints = endpoints_service.list(Default::default()).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn endpoints(&self) -> EndpointsService {
         EndpointsService::new(self.clone())
     }
 
-    /// Gets the templates service.
+    /// Returns the templates service for template management.
+    ///
+    /// Provides access to template operations including creation, listing,
+    /// updates, and template-based Pod/endpoint deployment.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use runpod_sdk::RunpodConfig;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = RunpodConfig::from_env()?.build_client()?;
+    /// let templates_service = client.templates();
+    /// let templates = templates_service.list(Default::default()).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn templates(&self) -> TemplatesService {
         TemplatesService::new(self.clone())
     }
 
-    /// Gets the volumes service.
+    /// Returns the volumes service for network volume operations.
+    ///
+    /// Provides access to persistent storage management including volume
+    /// creation, listing, updates, and attachment to Pods.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use runpod_sdk::RunpodConfig;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = RunpodConfig::from_env()?.build_client()?;
+    /// let volumes_service = client.volumes();
+    /// let volumes = volumes_service.list().await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn volumes(&self) -> VolumesService {
         VolumesService::new(self.clone())
     }
 
-    /// Gets the container registry auth service.
+    /// Returns the container registry authentication service.
+    ///
+    /// Provides access to container registry credential management for
+    /// accessing private Docker images during Pod and endpoint deployment.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use runpod_sdk::RunpodConfig;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = RunpodConfig::from_env()?.build_client()?;
+    /// let registry_service = client.container_registry_auth();
+    /// let auth_records = registry_service.list().await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn container_registry_auth(&self) -> RegistryService {
         RegistryService::new(self.clone())
     }
 
-    /// Gets the billing service.
+    /// Returns the billing service for usage and cost information.
+    ///
+    /// Provides access to billing data including usage statistics,
+    /// cost breakdowns, and billing history for all resources.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use runpod_sdk::RunpodConfig;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let client = RunpodConfig::from_env()?.build_client()?;
+    /// let billing_service = client.billing();
+    /// let pod_billing = billing_service.pods(Default::default()).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn billing(&self) -> BillingService {
         BillingService::new(self.clone())
     }

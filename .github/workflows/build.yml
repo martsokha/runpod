@@ -1,10 +1,33 @@
-name: CI
+name: Build & Test
 
 on:
   push:
-    branches: [main]
+    branches:
+      - "main"
+      - "release"
+    paths:
+      - "src/**"
+      - "examples/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "rustfmt.toml"
+      - "Makefile"
+      - ".github/workflows/build.yml"
   pull_request:
-    branches: [main]
+    branches:
+      - "main"
+      - "release"
+    paths:
+      - "src/**"
+      - "examples/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "rustfmt.toml"
+      - "Makefile"
+      - ".github/workflows/build.yml"
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
@@ -25,23 +48,10 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
 
-      - name: Cache cargo registry
-        uses: actions/cache@v4
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
         with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Cache cargo index
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Cache cargo build
-        uses: actions/cache@v4
-        with:
-          path: target
-          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+          shared-key: ${{ runner.os }}-${{ matrix.rust }}
 
       - name: Run tests
         run: cargo test --all-features
@@ -60,6 +70,9 @@ jobs:
         with:
           components: rustfmt
 
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+
       - name: Check formatting
         run: cargo fmt -- --check
 
@@ -74,6 +87,9 @@ jobs:
         with:
           components: clippy
 
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+
       - name: Run clippy
         run: cargo clippy --all-targets --all-features -- -D warnings
 
@@ -85,6 +101,9 @@ jobs:
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
 
       - name: Check documentation
         run: cargo doc --no-deps --all-features
@@ -99,6 +118,9 @@ jobs:
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
 
       - name: Install tarpaulin
         run: cargo install cargo-tarpaulin

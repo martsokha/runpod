@@ -2,12 +2,32 @@ name: Security
 
 on:
   push:
-    branches: [ main, develop ]
+    branches:
+      - "main"
+      - "release"
+    paths:
+      - "src/**"
+      - "examples/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "rustfmt.toml"
+      - "Makefile"
+      - ".github/workflows/security.yml"
   pull_request:
-    branches: [ main ]
+    branches:
+      - "main"
+      - "release"
+    paths:
+      - "src/**"
+      - "examples/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "rustfmt.toml"
+      - "Makefile"
+      - ".github/workflows/security.yml"
   schedule:
-    # Run security checks daily at 2 AM UTC
-    - cron: '0 2 * * *'
+    - cron: "0 2 * * *"
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
@@ -23,14 +43,8 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache Cargo registry
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
 
       - name: Install cargo-audit
         run: cargo install --force cargo-audit
@@ -70,15 +84,8 @@ jobs:
         with:
           components: clippy
 
-      - name: Cache Cargo registry
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
 
       - name: Run security-focused clippy lints
         run: |
@@ -130,15 +137,8 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache Cargo registry
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
 
       - name: Build project
         run: cargo build --release
@@ -156,14 +156,8 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache Cargo registry
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
 
       - name: Install cargo-license
         run: cargo install --force cargo-license

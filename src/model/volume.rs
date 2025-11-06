@@ -1,76 +1,3 @@
-//! Network volume models and related types for the RunPod API.
-//!
-//! This module contains all the data structures and types needed to work with RunPod Network Volumes,
-//! which are persistent, shared storage volumes that can be attached to multiple Pods simultaneously.
-//!
-//! # Overview
-//!
-//! Network volumes provide persistent, high-performance storage that survives Pod restarts and
-//! can be shared across multiple Pods within the same data center. They offer:
-//!
-//! - **Persistent Storage**: Data persists across Pod lifecycle events (start, stop, restart)
-//! - **Shared Access**: Multiple Pods can mount the same volume simultaneously
-//! - **High Performance**: SSD-backed storage with high IOPS and throughput
-//! - **Scalable Size**: Volumes can be expanded (but not reduced) from 1GB to 4TB
-//! - **Data Center Locality**: Volumes are tied to specific data centers for optimal performance
-//!
-//! # Core Types
-//!
-//! - [`NetworkVolume`]: The main network volume resource (re-exported from common)
-//! - [`NetworkVolumeCreateInput`]: Parameters for creating new network volumes
-//! - [`NetworkVolumeUpdateInput`]: Parameters for updating existing volumes (name and size)
-//! - [`NetworkVolumes`]: Type alias for collections of network volumes
-//!
-//! # Volume Lifecycle
-//!
-//! 1. **Creation**: Use [`NetworkVolumeCreateInput`] to specify size, name, and data center
-//! 2. **Usage**: Mount to Pods using the volume ID in Pod configurations
-//! 3. **Management**: Update name or expand size using [`NetworkVolumeUpdateInput`]
-//! 4. **Deletion**: Remove when no longer needed (permanently destroys data)
-//!
-//! # Storage Characteristics
-//!
-//! - **Minimum Size**: 1 GB
-//! - **Maximum Size**: 4,000 GB (4 TB)
-//! - **Expansion**: Volumes can be expanded but never reduced
-//! - **Performance**: High-performance SSD storage with consistent IOPS
-//! - **Availability**: 99.9% uptime SLA within each data center
-//!
-//! # Data Center Considerations
-//!
-//! Network volumes are created in specific data centers and can only be attached to Pods
-//! in the same data center. When creating volumes:
-//!
-//! - Choose data centers close to your users for lower latency
-//! - Consider data sovereignty and compliance requirements
-//! - Plan for data center availability and pricing differences
-//!
-//! # Billing
-//!
-//! Network volumes are billed based on:
-//! - **Provisioned capacity**: Charged for allocated size regardless of usage
-//! - **Per-GB-hour pricing**: Continuous billing while volume exists
-//! - **Data center pricing**: Rates vary by geographic location
-//!
-//! # Examples
-//!
-//! ```rust
-//! use runpod_sdk::model::volumes::{NetworkVolumeCreateInput, NetworkVolumeUpdateInput};
-//!
-//! // Create a new 100GB network volume
-//! let create_input = NetworkVolumeCreateInput {
-//!     name: "ml-dataset-storage".to_string(),
-//!     size: 100,
-//!     data_center_id: "US-CA-1".to_string(),
-//! };
-//!
-//! // Expand the volume to 250GB and rename it
-//! let update_input = NetworkVolumeUpdateInput {
-//!     name: Some("expanded-ml-storage".to_string()),
-//!     size: Some(250),
-//! };
-//! ```
-
 use serde::{Deserialize, Serialize};
 
 pub use super::common::NetworkVolume;
@@ -96,7 +23,7 @@ pub type NetworkVolumes = Vec<NetworkVolume>;
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::volumes::NetworkVolumeCreateInput;
+/// use runpod_sdk::model::NetworkVolumeCreateInput;
 ///
 /// // Create a small development volume
 /// let dev_volume = NetworkVolumeCreateInput {
@@ -112,7 +39,7 @@ pub type NetworkVolumes = Vec<NetworkVolume>;
 ///     data_center_id: "EU-RO-1".to_string(),
 /// };
 /// ```
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NetworkVolumeCreateInput {
     /// A user-defined name for the network volume.
@@ -189,7 +116,7 @@ pub struct NetworkVolumeCreateInput {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::volumes::NetworkVolumeUpdateInput;
+/// use runpod_sdk::model::NetworkVolumeUpdateInput;
 ///
 /// // Only change the name
 /// let rename_only = NetworkVolumeUpdateInput {

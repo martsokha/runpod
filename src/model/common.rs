@@ -9,12 +9,13 @@ use strum::{Display, EnumString};
 /// Determines whether a Pod will have GPU or CPU compute resources attached.
 /// When set to `GPU`, the Pod will have GPU resources and GPU-related properties
 /// will be considered. When set to `CPU`, only CPU-related properties will be used.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strum", derive(Display, EnumString))]
 #[serde(rename_all = "UPPERCASE")]
 #[cfg_attr(feature = "strum", strum(serialize_all = "UPPERCASE"))]
 pub enum ComputeType {
     /// GPU-based compute resources.
+    #[default]
     Gpu,
     /// CPU-based compute resources.
     Cpu,
@@ -25,12 +26,13 @@ pub enum ComputeType {
 /// Determines which RunPod cloud environment the Pod will be deployed to.
 /// Secure Cloud offers guaranteed availability and enterprise features,
 /// while Community Cloud offers lower costs with potentially less reliability.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strum", derive(Display, EnumString))]
 #[serde(rename_all = "UPPERCASE")]
 #[cfg_attr(feature = "strum", strum(serialize_all = "UPPERCASE"))]
 pub enum CloudType {
     /// Secure Cloud deployment with guaranteed resources and enterprise features.
+    #[default]
     Secure,
     /// Community Cloud deployment with lower costs and shared resources.
     Community,
@@ -40,12 +42,13 @@ pub enum CloudType {
 ///
 /// Represents the lifecycle state of a Pod, indicating whether it's actively
 /// running, has exited gracefully, or has been forcibly terminated.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "strum", derive(Display, EnumString))]
 #[serde(rename_all = "UPPERCASE")]
 #[cfg_attr(feature = "strum", strum(serialize_all = "UPPERCASE"))]
 pub enum PodStatus {
     /// Pod is currently running and operational.
+    #[default]
     Running,
     /// Pod has finished execution and exited normally.
     Exited,
@@ -57,7 +60,7 @@ pub enum PodStatus {
 ///
 /// Specifies which CUDA runtime version should be available on the GPU Pod.
 /// This is only relevant for GPU Pods and determines software compatibility.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum CudaVersion {
     #[serde(rename = "12.8")]
     V12_8,
@@ -76,6 +79,7 @@ pub enum CudaVersion {
     #[serde(rename = "12.1")]
     V12_1,
     #[serde(rename = "12.0")]
+    #[default]
     V12_0,
     #[serde(rename = "11.8")]
     V11_8,
@@ -171,7 +175,7 @@ pub enum GpuTypeId {
 /// Represents different CPU configurations available for CPU-only Pods.
 /// Each flavor provides different combinations of cores, memory, and performance
 /// characteristics optimized for various workload types.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[cfg_attr(feature = "strum", derive(Display, EnumString))]
 #[serde(rename_all = "lowercase")]
 #[cfg_attr(feature = "strum", strum(serialize_all = "lowercase"))]
@@ -185,6 +189,7 @@ pub enum CpuFlavorId {
     /// 5th generation CPU configuration - compute optimized.
     Cpu5c,
     /// 5th generation CPU configuration - general purpose.
+    #[default]
     Cpu5g,
     /// 5th generation CPU configuration - memory optimized.
     Cpu5m,
