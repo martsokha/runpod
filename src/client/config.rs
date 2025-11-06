@@ -6,22 +6,6 @@ use derive_builder::Builder;
 use crate::Result;
 use crate::client::RunpodClient;
 
-/// Configuration errors for RunpodConfig.
-#[derive(Debug, thiserror::Error)]
-pub enum RunpodConfigError {
-    /// API key is empty or invalid.
-    #[error("API key cannot be empty")]
-    EmptyApiKey,
-
-    /// Timeout configuration is invalid.
-    #[error("Invalid timeout: {0}")]
-    InvalidTimeout(String),
-
-    /// Generic validation error.
-    #[error("Validation error: {0}")]
-    Validation(String),
-}
-
 /// Configuration for the Runpod API client.
 ///
 /// This struct holds all the necessary configuration parameters for creating and using
@@ -155,9 +139,11 @@ impl RunpodConfig {
     ///
     /// let config = RunpodConfig::from_env().unwrap();
     /// ```
-    pub fn from_env() -> Result<Self, RunpodConfigError> {
+    pub fn from_env() -> Result<Self, RunpodBuilderError> {
         let api_key = std::env::var("RUNPOD_API_KEY").map_err(|_| {
-            RunpodConfigError::Validation("RUNPOD_API_KEY environment variable not set".to_string())
+            RunpodBuilderError::ValidationError(
+                "RUNPOD_API_KEY environment variable not set".to_string(),
+            )
         })?;
 
         let mut builder = Self::builder().with_api_key(api_key);
@@ -170,7 +156,7 @@ impl RunpodConfig {
         // Optional: custom timeout
         if let Ok(timeout_str) = std::env::var("RUNPOD_TIMEOUT_SECS") {
             let timeout_secs = timeout_str.parse::<u64>().map_err(|_| {
-                RunpodConfigError::InvalidTimeout(format!(
+                RunpodBuilderError::ValidationError(format!(
                     "Invalid RUNPOD_TIMEOUT_SECS value: {}",
                     timeout_str
                 ))
@@ -178,9 +164,7 @@ impl RunpodConfig {
             builder = builder.with_timeout(Duration::from_secs(timeout_secs));
         }
 
-        builder
-            .build()
-            .map_err(|e| RunpodConfigError::Validation(e.to_string()))
+        builder.build()
     }
 
     /// Creates a new RunPod client using this configuration.
@@ -244,9 +228,7 @@ impl RunpodBuilder {
     ///     .unwrap();
     /// ```
     pub fn build_client(self) -> Result<RunpodClient> {
-        let config = self
-            .build()
-            .map_err(|e| crate::Error::Config(RunpodConfigError::Validation(e.to_string())))?;
+        let config = self.build()?;
         RunpodClient::new(config)
     }
 }

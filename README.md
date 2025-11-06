@@ -51,6 +51,38 @@ async fn main() -> runpod_sdk::Result<()> {
 
 The SDK includes several optional features that can be enabled as needed:
 
+### TLS Backend
+
+The SDK supports two TLS backends for HTTPS connections:
+
+#### Rustls (Default)
+
+The default TLS backend uses `rustls`, a modern TLS library written in Rust:
+
+```toml
+[dependencies]
+runpod-sdk = "0.1.0"  # rustls-tls enabled by default
+```
+
+#### Native TLS
+
+Alternatively, you can use the system's native TLS implementation:
+
+```toml
+[dependencies]
+runpod-sdk = { version = "0.1.0", features = ["native-tls"], default-features = false }
+```
+
+**When to use native-tls:**
+- Corporate environments with custom CA certificates
+- Systems where native TLS is required for compliance
+- Environments where rustls compatibility issues arise
+
+**When to use rustls-tls (default):**
+- Most applications and development environments
+- Better performance and security guarantees
+- Smaller binary size and fewer system dependencies
+
 ### Tracing
 
 Enable comprehensive logging and tracing support:
@@ -92,11 +124,18 @@ fn example() -> Result<(), Box<dyn std::error::Error>> {
 
 ### All Features
 
-Enable all optional features:
+Enable all optional features with rustls-tls (default):
 
 ```toml
 [dependencies]
 runpod-sdk = { version = "0.1.0", features = ["tracing", "strum"] }
+```
+
+Or with native-tls:
+
+```toml
+[dependencies]
+runpod-sdk = { version = "0.1.0", features = ["native-tls", "tracing", "strum"], default-features = false }
 ```
 
 ## Configuration Options

@@ -1,0 +1,262 @@
+//! Network volume models and related types for the RunPod API.
+//!
+//! This module contains all the data structures and types needed to work with RunPod Network Volumes,
+//! which are persistent, shared storage volumes that can be attached to multiple Pods simultaneously.
+//!
+//! # Overview
+//!
+//! Network volumes provide persistent, high-performance storage that survives Pod restarts and
+//! can be shared across multiple Pods within the same data center. They offer:
+//!
+//! - **Persistent Storage**: Data persists across Pod lifecycle events (start, stop, restart)
+//! - **Shared Access**: Multiple Pods can mount the same volume simultaneously
+//! - **High Performance**: SSD-backed storage with high IOPS and throughput
+//! - **Scalable Size**: Volumes can be expanded (but not reduced) from 1GB to 4TB
+//! - **Data Center Locality**: Volumes are tied to specific data centers for optimal performance
+//!
+//! # Core Types
+//!
+//! - [`NetworkVolume`]: The main network volume resource (re-exported from common)
+//! - [`NetworkVolumeCreateInput`]: Parameters for creating new network volumes
+//! - [`NetworkVolumeUpdateInput`]: Parameters for updating existing volumes (name and size)
+//! - [`NetworkVolumes`]: Type alias for collections of network volumes
+//!
+//! # Volume Lifecycle
+//!
+//! 1. **Creation**: Use [`NetworkVolumeCreateInput`] to specify size, name, and data center
+//! 2. **Usage**: Mount to Pods using the volume ID in Pod configurations
+//! 3. **Management**: Update name or expand size using [`NetworkVolumeUpdateInput`]
+//! 4. **Deletion**: Remove when no longer needed (permanently destroys data)
+//!
+//! # Storage Characteristics
+//!
+//! - **Minimum Size**: 1 GB
+//! - **Maximum Size**: 4,000 GB (4 TB)
+//! - **Expansion**: Volumes can be expanded but never reduced
+//! - **Performance**: High-performance SSD storage with consistent IOPS
+//! - **Availability**: 99.9% uptime SLA within each data center
+//!
+//! # Data Center Considerations
+//!
+//! Network volumes are created in specific data centers and can only be attached to Pods
+//! in the same data center. When creating volumes:
+//!
+//! - Choose data centers close to your users for lower latency
+//! - Consider data sovereignty and compliance requirements
+//! - Plan for data center availability and pricing differences
+//!
+//! # Billing
+//!
+//! Network volumes are billed based on:
+//! - **Provisioned capacity**: Charged for allocated size regardless of usage
+//! - **Per-GB-hour pricing**: Continuous billing while volume exists
+//! - **Data center pricing**: Rates vary by geographic location
+//!
+//! # Examples
+//!
+//! ```rust
+//! use runpod_sdk::model::volumes::{NetworkVolumeCreateInput, NetworkVolumeUpdateInput};
+//!
+//! // Create a new 100GB network volume
+//! let create_input = NetworkVolumeCreateInput {
+//!     name: "ml-dataset-storage".to_string(),
+//!     size: 100,
+//!     data_center_id: "US-CA-1".to_string(),
+//! };
+//!
+//! // Expand the volume to 250GB and rename it
+//! let update_input = NetworkVolumeUpdateInput {
+//!     name: Some("expanded-ml-storage".to_string()),
+//!     size: Some(250),
+//! };
+//! ```
+
+use serde::{Deserialize, Serialize};
+
+pub use super::common::NetworkVolume;
+
+/// List of network volumes.
+///
+/// A collection type representing multiple network volumes, typically returned
+/// from API endpoints that list volumes for an account or data center.
+pub type NetworkVolumes = Vec<NetworkVolume>;
+
+/// Input parameters for creating a new network volume.
+///
+/// This struct contains all the required configuration options for creating a network volume.
+/// All fields are mandatory as they define the fundamental characteristics of the volume
+/// that cannot be changed after creation (except size, which can only be increased).
+///
+/// # Validation Requirements
+///
+/// - **name**: Must be 1-255 characters long. Can contain letters, numbers, spaces, hyphens, and underscores
+/// - **size**: Must be between 1 and 4,000 GB. Choose based on your storage needs and budget
+/// - **data_center_id**: Must be a valid RunPod data center identifier (format: XX-XX-N)
+///
+/// # Examples
+///
+/// ```rust
+/// use runpod_sdk::model::volumes::NetworkVolumeCreateInput;
+///
+/// // Create a small development volume
+/// let dev_volume = NetworkVolumeCreateInput {
+///     name: "dev-workspace".to_string(),
+///     size: 10,
+///     data_center_id: "US-CA-1".to_string(),
+/// };
+///
+/// // Create a large production dataset volume
+/// let prod_volume = NetworkVolumeCreateInput {
+///     name: "production-ml-datasets".to_string(),
+///     size: 1000,
+///     data_center_id: "EU-RO-1".to_string(),
+/// };
+/// ```
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NetworkVolumeCreateInput {
+    /// A user-defined name for the network volume.
+    ///
+    /// The name is used for identification and organization purposes.
+    /// It does not need to be unique across your account, allowing you to
+    /// use descriptive names that match your workflow or project structure.
+    ///
+    /// **Constraints:**
+    /// - Length: 1-255 characters
+    /// - Allowed characters: letters, numbers, spaces, hyphens, underscores
+    /// - Case-sensitive
+    ///
+    /// **Examples:** "ml-training-data", "user uploads", "backup_volume_2024"
+    pub name: String,
+
+    /// The amount of disk space, in gigabytes (GB), to allocate to the network volume.
+    ///
+    /// This determines the storage capacity of the volume and directly affects billing.
+    /// Choose a size that accounts for current needs plus reasonable growth, as expanding
+    /// volumes requires an update operation and may take time to complete.
+    ///
+    /// **Constraints:**
+    /// - Minimum: 1 GB
+    /// - Maximum: 4,000 GB (4 TB)
+    /// - Billing: Charged per GB-hour for the full allocated capacity
+    ///
+    /// **Performance notes:**
+    /// - Larger volumes may have better IOPS performance
+    /// - Size can be increased later but never decreased
+    ///
+    /// **Examples:** 10 (small dev), 100 (medium project), 1000 (large dataset)
+    pub size: u32,
+
+    /// The RunPod data center ID where the network volume will be created.
+    ///
+    /// Network volumes are bound to specific data centers and can only be attached
+    /// to Pods running in the same data center. Choose based on:
+    /// - Geographic proximity to your users
+    /// - Data sovereignty requirements
+    /// - Pricing differences between regions
+    /// - Availability of required GPU/CPU types
+    ///
+    /// **Format:** Two-letter country code, two-letter region code, and number (XX-XX-N)
+    ///
+    /// **Common data centers:**
+    /// - `US-CA-1`: California, USA (West Coast)
+    /// - `US-TX-1`: Texas, USA (Central)
+    /// - `EU-RO-1`: Romania, Europe
+    /// - `EU-SE-1`: Sweden, Europe
+    ///
+    /// **Note:** Available data centers and their identifiers can be retrieved
+    /// from the data centers API endpoint.
+    pub data_center_id: String,
+}
+
+/// Input parameters for updating an existing network volume.
+///
+/// This struct allows you to modify the name and/or size of an existing network volume.
+/// Both fields are optional, allowing you to update only the properties you want to change.
+///
+/// # Important Notes
+///
+/// - **Size expansion only**: You can increase the volume size but never decrease it
+/// - **Live expansion**: Size changes can be performed while Pods are using the volume
+/// - **Billing impact**: Size increases affect billing immediately
+/// - **No downtime**: Name changes are instantaneous with no service interruption
+///
+/// # Validation Requirements
+///
+/// - **name**: If provided, must be 1-255 characters long
+/// - **size**: If provided, must be larger than current size and ≤4,000 GB
+///
+/// # Examples
+///
+/// ```rust
+/// use runpod_sdk::model::volumes::NetworkVolumeUpdateInput;
+///
+/// // Only change the name
+/// let rename_only = NetworkVolumeUpdateInput {
+///     name: Some("renamed-volume".to_string()),
+///     size: None,
+/// };
+///
+/// // Only expand the size from current to 500GB
+/// let expand_only = NetworkVolumeUpdateInput {
+///     name: None,
+///     size: Some(500),
+/// };
+///
+/// // Change both name and size
+/// let full_update = NetworkVolumeUpdateInput {
+///     name: Some("production-storage-v2".to_string()),
+///     size: Some(1000),
+/// };
+///
+/// // No changes (useful for testing API connectivity)
+/// let no_change = NetworkVolumeUpdateInput::default();
+/// ```
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NetworkVolumeUpdateInput {
+    /// Optional new name for the network volume.
+    ///
+    /// If provided, the volume will be renamed to this value. The name change
+    /// is applied immediately and does not affect volume availability or performance.
+    ///
+    /// **Constraints:**
+    /// - Length: 1-255 characters (if provided)
+    /// - Allowed characters: letters, numbers, spaces, hyphens, underscores
+    /// - Case-sensitive
+    ///
+    /// **Use cases:**
+    /// - Updating naming conventions across your infrastructure
+    /// - Adding version numbers or status indicators
+    /// - Improving organization and searchability
+    ///
+    /// **Note:** Set to `None` to keep the current name unchanged.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+
+    /// Optional new size for the network volume in gigabytes (GB).
+    ///
+    /// If provided, the volume will be expanded to this new size. The expansion
+    /// operation preserves all existing data and can be performed while Pods are
+    /// actively using the volume.
+    ///
+    /// **Constraints:**
+    /// - Must be larger than the current volume size (expansion only)
+    /// - Maximum: 4,000 GB (4 TB)
+    /// - Minimum increment: 1 GB
+    ///
+    /// **Process:**
+    /// 1. API call returns immediately with success
+    /// 2. Volume expansion happens asynchronously in the background
+    /// 3. Additional capacity becomes available once expansion completes
+    /// 4. Billing for the new size begins immediately
+    ///
+    /// **Performance impact:**
+    /// - No downtime during expansion
+    /// - File system may need manual extension in some cases
+    /// - Larger volumes may have improved IOPS performance
+    ///
+    /// **Note:** Set to `None` to keep the current size unchanged.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub size: Option<u32>,
+}

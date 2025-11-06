@@ -8,7 +8,7 @@ pub mod service;
 
 pub use client::{RunpodBuilder, RunpodClient, RunpodConfig};
 
-use crate::client::config::{RunpodBuilderError, RunpodConfigError};
+use crate::client::config::RunpodBuilderError;
 
 /// Error type for RunPod API operations.
 ///
@@ -62,13 +62,7 @@ pub enum Error {
     /// This occurs when configuration parameters are invalid or when using
     /// the configuration builder and validation fails during the build process.
     #[error("Configuration error: {0}")]
-    Config(#[from] RunpodConfigError),
-}
-
-impl From<RunpodBuilderError> for Error {
-    fn from(err: RunpodBuilderError) -> Self {
-        Error::Config(RunpodConfigError::Validation(err.to_string()))
-    }
+    Config(#[from] RunpodBuilderError),
 }
 
 /// Result type for RunPod API operations.
