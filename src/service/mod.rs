@@ -1,6 +1,6 @@
-//! RunPod API service implementations.
+//! RunPod API service traits.
 //!
-//! This module contains service implementations for all RunPod API endpoints:
+//! This module contains trait definitions for all RunPod API services:
 //!
 //! - [`BillingService`] - Account billing and usage statistics
 //! - [`EndpointsService`] - Serverless endpoint management
@@ -9,20 +9,23 @@
 //! - [`TemplatesService`] - Template creation and management
 //! - [`VolumesService`] - Network volume operations
 //!
+//! All traits are implemented on [`RunpodClient`] providing direct access to API methods.
+//!
 //! # Usage
 //!
-//! Services are accessed through the main [`RunpodClient`]:
+//! Service methods are called directly on the [`RunpodClient`]:
 //!
 //! ```no_run
 //! use runpod_sdk::{RunpodConfig, model::ListPodsQuery};
+//! use runpod_sdk::service::PodsService;
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let client = RunpodConfig::from_env()?.build_client()?;
 //!
-//! // Access different services
-//! let pods = client.pods().list(ListPodsQuery::default()).await?;
-//! let endpoints = client.endpoints().list(Default::default()).await?;
-//! let templates = client.templates().list(Default::default()).await?;
+//! // Call service methods directly on the client
+//! let pods = client.list_pods(ListPodsQuery::default()).await?;
+//! let endpoints = client.list_endpoints(Default::default()).await?;
+//! let templates = client.list_templates(Default::default()).await?;
 //! # Ok(())
 //! # }
 //! ```

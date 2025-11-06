@@ -1,28 +1,32 @@
+use std::future::Future;
+
 use crate::Result;
 use crate::client::RunpodClient;
 use crate::model::{
     NetworkVolume, NetworkVolumeCreateInput, NetworkVolumeUpdateInput, NetworkVolumes,
 };
 
-/// Service for managing network volumes.
-#[derive(Debug, Clone)]
-pub struct VolumesService {
-    client: RunpodClient,
-}
-
-impl VolumesService {
-    /// Creates a new network volumes service.
-    pub(crate) fn new(client: RunpodClient) -> Self {
-        Self { client }
-    }
-
+/// Trait for managing network volumes.
+///
+/// Provides methods for creating, listing, retrieving, updating, and deleting network volumes.
+/// This trait is implemented on the [`RunpodClient`](crate::client::RunpodClient).
+pub trait VolumesService {
     /// Creates a new network volume.
+    ///
+    /// # Arguments
+    ///
+    /// * `input` - Configuration for the new network volume
+    ///
+    /// # Returns
+    ///
+    /// Returns the created network volume information.
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::NetworkVolumeCreateInput;
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use runpod_sdk::service::VolumesService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
@@ -32,111 +36,172 @@ impl VolumesService {
     ///     data_center_id: "EU-RO-1".to_string(),
     /// };
     ///
-    /// let volume = client.volumes().create(input).await?;
+    /// let volume = client.create_volume(input).await?;
     /// println!("Created volume: {}", volume.id);
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn create(&self, input: NetworkVolumeCreateInput) -> Result<NetworkVolume> {
-        let response = self
-            .client
-            .post("/networkvolumes")
-            .json(&input)
-            .send()
-            .await?;
-        let volume = response.json().await?;
-        Ok(volume)
-    }
+    fn create_volume(
+        &self,
+        input: NetworkVolumeCreateInput,
+    ) -> impl Future<Output = Result<NetworkVolume>>;
 
-    /// Lists network volumes.
+    /// Lists all network volumes.
+    ///
+    /// # Returns
+    ///
+    /// Returns a vector of all network volumes associated with the account.
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
+    /// # use runpod_sdk::service::VolumesService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
-    /// let volumes = client.volumes().list().await?;
+    /// let volumes = client.list_volumes().await?;
     /// println!("Found {} volumes", volumes.len());
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn list(&self) -> Result<NetworkVolumes> {
-        let response = self.client.get("/networkvolumes").send().await?;
-        let volumes = response.json().await?;
-        Ok(volumes)
-    }
+    fn list_volumes(&self) -> impl Future<Output = Result<NetworkVolumes>>;
 
-    /// Gets a network volume by ID.
+    /// Gets a specific network volume by ID.
+    ///
+    /// # Arguments
+    ///
+    /// * `volume_id` - The unique identifier of the network volume
+    ///
+    /// # Returns
+    ///
+    /// Returns the network volume information.
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
+    /// # use runpod_sdk::service::VolumesService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
-    /// let volume = client.volumes().get("volume_id").await?;
+    /// let volume = client.get_volume("volume_id").await?;
     /// println!("Volume: {:?}", volume);
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn get(&self, network_volume_id: &str) -> Result<NetworkVolume> {
-        let path = format!("/networkvolumes/{}", network_volume_id);
-        let response = self.client.get(&path).send().await?;
-        let volume = response.json().await?;
-        Ok(volume)
-    }
+    fn get_volume(&self, volume_id: &str) -> impl Future<Output = Result<NetworkVolume>>;
 
-    /// Updates a network volume.
+    /// Updates an existing network volume.
+    ///
+    /// # Arguments
+    ///
+    /// * `volume_id` - The unique identifier of the volume to update
+    /// * `input` - Update parameters for the network volume
+    ///
+    /// # Returns
+    ///
+    /// Returns the updated network volume information.
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::NetworkVolumeUpdateInput;
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use runpod_sdk::service::VolumesService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let input = NetworkVolumeUpdateInput {
-    ///     size: Some(100),
+    ///     name: Some("Updated Volume".to_string()),
     ///     ..Default::default()
     /// };
     ///
-    /// let volume = client.volumes().update("volume_id", input).await?;
+    /// let volume = client.update_volume("volume_id", input).await?;
     /// println!("Updated volume: {}", volume.id);
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn update(
+    fn update_volume(
         &self,
-        network_volume_id: &str,
+        volume_id: &str,
         input: NetworkVolumeUpdateInput,
-    ) -> Result<NetworkVolume> {
-        let path = format!("/networkvolumes/{}", network_volume_id);
-        let response = self.client.patch(&path).json(&input).send().await?;
-        let volume = response.json().await?;
-        Ok(volume)
-    }
+    ) -> impl Future<Output = Result<NetworkVolume>>;
 
     /// Deletes a network volume.
     ///
+    /// This operation will permanently remove the network volume and all its data.
+    ///
+    /// # Arguments
+    ///
+    /// * `volume_id` - The unique identifier of the volume to delete
+    ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
+    /// # use runpod_sdk::service::VolumesService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
-    /// client.volumes().delete("volume_id").await?;
+    /// client.delete_volume("volume_id").await?;
     /// println!("Volume deleted");
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn delete(&self, network_volume_id: &str) -> Result<()> {
-        let path = format!("/networkvolumes/{}", network_volume_id);
-        self.client.delete(&path).send().await?;
-        Ok(())
+    fn delete_volume(&self, volume_id: &str) -> impl Future<Output = Result<()>>;
+}
+
+impl VolumesService for RunpodClient {
+    fn create_volume(
+        &self,
+        input: NetworkVolumeCreateInput,
+    ) -> impl Future<Output = Result<NetworkVolume>> {
+        async move {
+            let response = self.post("/networkvolumes").json(&input).send().await?;
+            let volume = response.json().await?;
+            Ok(volume)
+        }
+    }
+
+    fn list_volumes(&self) -> impl Future<Output = Result<NetworkVolumes>> {
+        async move {
+            let response = self.get("/networkvolumes").send().await?;
+            let volumes = response.json().await?;
+            Ok(volumes)
+        }
+    }
+
+    fn get_volume(&self, volume_id: &str) -> impl Future<Output = Result<NetworkVolume>> {
+        let volume_id = volume_id.to_string();
+        async move {
+            let path = format!("/networkvolumes/{}", volume_id);
+            let response = self.get(&path).send().await?;
+            let volume = response.json().await?;
+            Ok(volume)
+        }
+    }
+
+    fn update_volume(
+        &self,
+        volume_id: &str,
+        input: NetworkVolumeUpdateInput,
+    ) -> impl Future<Output = Result<NetworkVolume>> {
+        let volume_id = volume_id.to_string();
+        async move {
+            let path = format!("/networkvolumes/{}", volume_id);
+            let response = self.patch(&path).json(&input).send().await?;
+            let volume = response.json().await?;
+            Ok(volume)
+        }
+    }
+
+    fn delete_volume(&self, volume_id: &str) -> impl Future<Output = Result<()>> {
+        let volume_id = volume_id.to_string();
+        async move {
+            let path = format!("/networkvolumes/{}", volume_id);
+            self.delete(&path).send().await?;
+            Ok(())
+        }
     }
 }

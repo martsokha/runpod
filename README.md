@@ -1,5 +1,7 @@
 # Runpod SDK
 
+This crate is a fork of the original [runpod.rs](https://github.com/agentsea/runpod.rs) developed by [Patrick Barker](https://github.com/pbarker).
+
 [![Crates.io](https://img.shields.io/crates/v/runpod-sdk?style=flat-square&color=black)](https://crates.io/crates/runpod-sdk)
 [![Documentation](https://img.shields.io/docsrs/runpod-sdk?style=flat-square&color=black)](https://docs.rs/runpod-sdk)
 [![Build](https://img.shields.io/github/actions/workflow/status/martsokha/runpod/build.yml?style=flat-square&color=black)](https://github.com/martsokha/runpod/actions)
@@ -30,19 +32,20 @@ runpod-sdk = { version = "0.1", features = [] }
 ### Builder Configuration
 
 ```rust,no_run
-use runpod_sdk::RunpodConfig;
+use runpod_sdk::{RunpodConfig, Result};
 use runpod_sdk::model::ListPodsQuery;
+use runpod_sdk::service::PodsService;
 use std::time::Duration;
 
 #[tokio::main]
-async fn main() -> runpod_sdk::Result<()> {
+async fn main() -> Result<()> {
     let client = RunpodConfig::builder()
         .with_api_key("your-api-key")
         .with_base_url("https://api.runpod.io/v1")
         .with_timeout(Duration::from_secs(60))
         .build_client()?;
 
-    let pods = client.pods().list(ListPodsQuery::default()).await?;
+    let pods = client.list_pods(ListPodsQuery::default()).await?;
     println!("Found {} pods", pods.len());
 
     Ok(())
@@ -52,12 +55,12 @@ async fn main() -> runpod_sdk::Result<()> {
 ### Environment Variables
 
 ```rust,no_run
-use runpod_sdk::RunpodConfig;
+use runpod_sdk::{RunpodClient, Result};
 
 #[tokio::main]
-async fn main() -> runpod_sdk::Result<()> {
+async fn main() -> Result<()> {
     // Uses RUNPOD_API_KEY, RUNPOD_BASE_URL, RUNPOD_TIMEOUT_SECS
-    let client = RunpodConfig::from_env()?.build_client()?;
+    let client = RunpodClient::from_env()?;
     Ok(())
 }
 ```

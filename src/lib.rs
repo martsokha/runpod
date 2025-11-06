@@ -20,12 +20,11 @@ use crate::client::config::RunpodBuilderError;
 /// Handling different error types:
 ///
 /// ```no_run
-/// # use runpod_sdk::{Error, Result, RunpodClient, RunpodConfig};
+/// # use runpod_sdk::{Error, Result, RunpodClient, service::PodsService};
 /// # async fn example() -> Result<()> {
-/// let config = RunpodConfig::from_env()?;
-/// let client = RunpodClient::new(config)?;
+/// let client = RunpodClient::from_env()?;
 ///
-/// match client.pods().list(Default::default()).await {
+/// match client.list_pods(Default::default()).await {
 ///     Ok(pods) => println!("Found {} pods", pods.len()),
 ///     Err(Error::Http(e)) => println!("Network error: {}", e),
 ///     Err(Error::Api(msg)) => println!("API error: {}", msg),

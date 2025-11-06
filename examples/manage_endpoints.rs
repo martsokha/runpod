@@ -1,10 +1,10 @@
 use runpod_sdk::model::ListEndpointsQuery;
-use runpod_sdk::{Result, RunpodClient, RunpodConfig};
+use runpod_sdk::service::EndpointsService;
+use runpod_sdk::{Result, RunpodClient};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let config = RunpodConfig::from_env()?;
-    let client = RunpodClient::new(config)?;
+    let client = RunpodClient::from_env()?;
 
     // List all endpoints with template and worker information
     println!("Listing all endpoints...");
@@ -13,7 +13,7 @@ async fn main() -> Result<()> {
         include_workers: Some(true),
     };
 
-    let endpoints = client.endpoints().list(query).await?;
+    let endpoints = client.list_endpoints(query).await?;
     println!("Found {} endpoints\n", endpoints.len());
 
     for endpoint in &endpoints {

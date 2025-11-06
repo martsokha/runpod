@@ -1,13 +1,13 @@
 use std::time::Duration;
 
 use runpod_sdk::model::{GetPodQuery, ListPodsQuery, PodCreateInput, PodStatus, PodUpdateInput};
-use runpod_sdk::{Result, RunpodClient, RunpodConfig};
+use runpod_sdk::service::PodsService;
+use runpod_sdk::{Result, RunpodClient};
 use tokio::time::sleep;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let config = RunpodConfig::from_env()?;
-    let client = RunpodClient::new(config)?;
+    let client = RunpodClient::from_env()?;
 
     // List existing pods
     println!("Listing existing pods...");
@@ -15,7 +15,7 @@ async fn main() -> Result<()> {
         include_machine: Some(true),
         ..Default::default()
     };
-    let pods = client.pods().list(query).await?;
+    let pods = client.list_pods(query).await?;
     println!("Found {} pods", pods.len());
 
     for pod in &pods {
@@ -44,7 +44,7 @@ async fn main() -> Result<()> {
         ..Default::default()
     };
 
-    match client.pods().create(create_input).await {
+    match client.create_pod(create_input).await {
         Ok(pod) => {
             println!("Created pod: {}", pod.id);
             let pod_id = pod.id.clone();
@@ -59,7 +59,7 @@ async fn main() -> Result<()> {
                     ..Default::default()
                 };
 
-                if let Ok(pod_info) = client.pods().get(&pod_id, query).await {
+                if let Ok(pod_info) = client.get_pod(&pod_id, query).await {
                     println!("  Check {}: {:?}", i, pod_info.desired_status);
 
                     if matches!(
@@ -78,7 +78,7 @@ async fn main() -> Result<()> {
                 ..Default::default()
             };
 
-            if let Err(e) = client.pods().update(&pod_id, update_input).await {
+            if let Err(e) = client.update_pod(&pod_id, update_input).await {
                 println!("Update failed: {}", e);
             } else {
                 println!("Pod updated successfully");
@@ -86,14 +86,14 @@ async fn main() -> Result<()> {
 
             // Stop pod
             println!("Stopping pod...");
-            if let Err(e) = client.pods().stop(&pod_id).await {
+            if let Err(e) = client.stop_pod(&pod_id).await {
                 println!("Stop failed: {}", e);
             } else {
                 println!("Pod stopped");
             }
 
             // Note: Uncomment to delete the pod
-            // client.pods().delete(&pod_id).await?;
+            // client.delete_pod(&pod_id).await?;
             println!("Pod cleanup skipped (uncomment delete line if needed)");
         }
         Err(e) => {
@@ -109,7 +109,7 @@ async fn main() -> Result<()> {
         ..Default::default()
     };
 
-    let running_pods = client.pods().list(running_query).await?;
+    let running_pods = client.list_pods(running_query).await?;
     println!("Running pods: {}", running_pods.len());
 
     for pod in running_pods {

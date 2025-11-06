@@ -1,3 +1,5 @@
+use std::future::Future;
+
 use crate::Result;
 use crate::client::RunpodClient;
 use crate::model::{
@@ -5,25 +7,27 @@ use crate::model::{
     Templates,
 };
 
-/// Service for managing templates.
-#[derive(Debug, Clone)]
-pub struct TemplatesService {
-    client: RunpodClient,
-}
-
-impl TemplatesService {
-    /// Creates a new templates service.
-    pub(crate) fn new(client: RunpodClient) -> Self {
-        Self { client }
-    }
-
+/// Trait for managing templates.
+///
+/// Provides methods for creating, listing, retrieving, updating, and deleting templates.
+/// This trait is implemented on the [`RunpodClient`](crate::client::RunpodClient).
+pub trait TemplatesService {
     /// Creates a new template.
+    ///
+    /// # Arguments
+    ///
+    /// * `input` - Configuration for the new template
+    ///
+    /// # Returns
+    ///
+    /// Returns the created template information.
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::TemplateCreateInput;
-    /// # async fn example() -> runpod_sdk::Result<()> {
+    /// # use runpod_sdk::service::TemplatesService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::from_env()?;
     /// let client = RunpodClient::new(config)?;
     ///
@@ -44,74 +48,95 @@ impl TemplatesService {
     ///     docker_entrypoint: None,
     /// };
     ///
-    /// let template = client.templates().create(input).await?;
+    /// let template = client.create_template(input).await?;
     /// println!("Created template: {}", template.id);
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn create(&self, input: TemplateCreateInput) -> Result<Template> {
-        let response = self.client.post("/templates").json(&input).send().await?;
-        let template = response.json().await?;
-        Ok(template)
-    }
+    fn create_template(&self, input: TemplateCreateInput)
+    -> impl Future<Output = Result<Template>>;
 
-    /// Lists templates.
+    /// Lists templates with optional filtering.
+    ///
+    /// # Arguments
+    ///
+    /// * `query` - Query parameters for filtering and pagination
+    ///
+    /// # Returns
+    ///
+    /// Returns a vector of templates matching the query criteria.
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::ListTemplatesQuery;
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use runpod_sdk::service::TemplatesService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let query = ListTemplatesQuery {
-    ///     include_public_templates: Some(true),
+    ///     is_public: Some(true),
     ///     ..Default::default()
     /// };
     ///
-    /// let templates = client.templates().list(query).await?;
+    /// let templates = client.list_templates(query).await?;
     /// println!("Found {} templates", templates.len());
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn list(&self, query: ListTemplatesQuery) -> Result<Templates> {
-        let response = self.client.get("/templates").query(&query).send().await?;
-        let templates = response.json().await?;
-        Ok(templates)
-    }
+    fn list_templates(&self, query: ListTemplatesQuery) -> impl Future<Output = Result<Templates>>;
 
-    /// Gets a template by ID.
+    /// Gets a specific template by ID.
+    ///
+    /// # Arguments
+    ///
+    /// * `template_id` - The unique identifier of the template
+    /// * `query` - Query parameters for including additional information
+    ///
+    /// # Returns
+    ///
+    /// Returns the template information.
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::GetTemplateQuery;
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use runpod_sdk::service::TemplatesService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let query = GetTemplateQuery::default();
     ///
-    /// let template = client.templates().get("template_id", query).await?;
+    /// let template = client.get_template("template_id", query).await?;
     /// println!("Template: {:?}", template);
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn get(&self, template_id: &str, query: GetTemplateQuery) -> Result<Template> {
-        let path = format!("/templates/{}", template_id);
-        let response = self.client.get(&path).query(&query).send().await?;
-        let template = response.json().await?;
-        Ok(template)
-    }
+    fn get_template(
+        &self,
+        template_id: &str,
+        query: GetTemplateQuery,
+    ) -> impl Future<Output = Result<Template>>;
 
-    /// Updates a template (triggers rolling release for associated endpoints)
+    /// Updates an existing template.
+    ///
+    /// # Arguments
+    ///
+    /// * `template_id` - The unique identifier of the template to update
+    /// * `input` - Update parameters for the template
+    ///
+    /// # Returns
+    ///
+    /// Returns the updated template information.
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::TemplateUpdateInput;
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use runpod_sdk::service::TemplatesService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
@@ -120,35 +145,95 @@ impl TemplatesService {
     ///     ..Default::default()
     /// };
     ///
-    /// let template = client.templates().update("template_id", input).await?;
+    /// let template = client.update_template("template_id", input).await?;
     /// println!("Updated template: {}", template.id);
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn update(&self, template_id: &str, input: TemplateUpdateInput) -> Result<Template> {
-        let path = format!("/templates/{}", template_id);
-        let response = self.client.patch(&path).json(&input).send().await?;
-        let template = response.json().await?;
-        Ok(template)
-    }
+    fn update_template(
+        &self,
+        template_id: &str,
+        input: TemplateUpdateInput,
+    ) -> impl Future<Output = Result<Template>>;
 
     /// Deletes a template.
     ///
+    /// This operation will permanently remove the template.
+    ///
+    /// # Arguments
+    ///
+    /// * `template_id` - The unique identifier of the template to delete
+    ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
+    /// # use runpod_sdk::service::TemplatesService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
-    /// client.templates().delete("template_id").await?;
+    /// client.delete_template("template_id").await?;
     /// println!("Template deleted");
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn delete(&self, template_id: &str) -> Result<()> {
-        let path = format!("/templates/{}", template_id);
-        self.client.delete(&path).send().await?;
-        Ok(())
+    fn delete_template(&self, template_id: &str) -> impl Future<Output = Result<()>>;
+}
+
+impl TemplatesService for RunpodClient {
+    fn create_template(
+        &self,
+        input: TemplateCreateInput,
+    ) -> impl Future<Output = Result<Template>> {
+        async move {
+            let response = self.post("/templates").json(&input).send().await?;
+            let template = response.json().await?;
+            Ok(template)
+        }
+    }
+
+    fn list_templates(&self, query: ListTemplatesQuery) -> impl Future<Output = Result<Templates>> {
+        async move {
+            let response = self.get("/templates").query(&query).send().await?;
+            let templates = response.json().await?;
+            Ok(templates)
+        }
+    }
+
+    fn get_template(
+        &self,
+        template_id: &str,
+        query: GetTemplateQuery,
+    ) -> impl Future<Output = Result<Template>> {
+        let template_id = template_id.to_string();
+        async move {
+            let path = format!("/templates/{}", template_id);
+            let response = self.get(&path).query(&query).send().await?;
+            let template = response.json().await?;
+            Ok(template)
+        }
+    }
+
+    fn update_template(
+        &self,
+        template_id: &str,
+        input: TemplateUpdateInput,
+    ) -> impl Future<Output = Result<Template>> {
+        let template_id = template_id.to_string();
+        async move {
+            let path = format!("/templates/{}", template_id);
+            let response = self.patch(&path).json(&input).send().await?;
+            let template = response.json().await?;
+            Ok(template)
+        }
+    }
+
+    fn delete_template(&self, template_id: &str) -> impl Future<Output = Result<()>> {
+        let template_id = template_id.to_string();
+        async move {
+            let path = format!("/templates/{}", template_id);
+            self.delete(&path).send().await?;
+            Ok(())
+        }
     }
 }

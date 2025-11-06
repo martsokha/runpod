@@ -1,15 +1,19 @@
+use std::future::Future;
+
 use crate::Result;
 use crate::client::RunpodClient;
 use crate::model::{
     BillingRecords, EndpointBillingQuery, NetworkVolumeBillingQuery, PodBillingQuery,
 };
 
-/// Service for retrieving billing information and usage data.
+/// Trait for retrieving billing information and usage data.
 ///
 /// The `BillingService` provides methods to query billing records for various
 /// RunPod resources including Pods, Serverless endpoints, and Network volumes.
 /// It allows filtering by time ranges, grouping by different criteria, and
 /// retrieving detailed usage statistics for cost analysis and monitoring.
+///
+/// This trait is implemented on the [`RunpodClient`](crate::client::RunpodClient).
 ///
 /// # Features
 ///
@@ -24,17 +28,8 @@ use crate::model::{
 /// All billing queries support optional start and end time parameters.
 /// Times should be provided in ISO 8601 format (e.g., "2024-01-01T00:00:00Z").
 /// If not specified, the service will return recent billing data.
-#[derive(Debug, Clone)]
-pub struct BillingService {
-    client: RunpodClient,
-}
 
-impl BillingService {
-    /// Creates a new billing service.
-    pub(crate) fn new(client: RunpodClient) -> Self {
-        Self { client }
-    }
-
+pub trait BillingService {
     /// Retrieves detailed Pod billing history and usage data.
     ///
     /// This method returns billing records for GPU and CPU Pod usage, including
@@ -42,9 +37,9 @@ impl BillingService {
     /// Results can be filtered by time range and grouped by various criteria
     /// such as Pod ID, GPU type, or data center.
     ///
-    /// # Parameters
+    /// # Arguments
     ///
-    /// - `query`: Query parameters to filter and group the billing data
+    /// * `query` - Query parameters to filter and group the billing data
     ///   - `bucket_size`: Time granularity (hour, day, week, month, year)
     ///   - `grouping`: How to group the results (by Pod ID, GPU type, etc.)
     ///   - `start_time`/`end_time`: Time range filter in ISO 8601 format
@@ -61,9 +56,10 @@ impl BillingService {
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::{PodBillingQuery, BucketSize};
-    /// # async fn example() -> runpod_sdk::Result<()> {
+    /// # use runpod_sdk::service::BillingService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::from_env()?;
     /// let client = RunpodClient::new(config)?;
     ///
@@ -74,21 +70,15 @@ impl BillingService {
     ///     ..Default::default()
     /// };
     ///
-    /// let records = client.billing().pods(query).await?;
+    /// let records = client.get_pod_billing(query).await?;
     /// println!("Found {} pod billing records", records.len());
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn pods(&self, query: PodBillingQuery) -> Result<BillingRecords> {
-        let response = self
-            .client
-            .get("/billing/pods")
-            .query(&query)
-            .send()
-            .await?;
-        let records = response.json().await?;
-        Ok(records)
-    }
+    fn get_pod_billing(
+        &self,
+        query: PodBillingQuery,
+    ) -> impl Future<Output = Result<BillingRecords>>;
 
     /// Retrieves comprehensive Serverless endpoint billing history and metrics.
     ///
@@ -96,9 +86,9 @@ impl BillingService {
     /// usage, including request processing costs, idle time charges, and scaling
     /// metrics. The data helps analyze endpoint performance and cost efficiency.
     ///
-    /// # Parameters
+    /// # Arguments
     ///
-    /// - `query`: Query parameters for filtering and grouping endpoint billing data
+    /// * `query` - Query parameters for filtering and grouping endpoint billing data
     ///   - `bucket_size`: Time granularity for aggregating billing data
     ///   - `grouping`: Grouping criteria (endpoint ID, template ID, etc.)
     ///   - `start_time`/`end_time`: Time range for the billing period
@@ -117,9 +107,10 @@ impl BillingService {
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::{EndpointBillingQuery, BucketSize, BillingGrouping};
-    /// # async fn example() -> runpod_sdk::Result<()> {
+    /// # use runpod_sdk::service::BillingService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::from_env()?;
     /// let client = RunpodClient::new(config)?;
     ///
@@ -131,21 +122,15 @@ impl BillingService {
     ///     ..Default::default()
     /// };
     ///
-    /// let records = client.billing().endpoints(query).await?;
+    /// let records = client.get_endpoint_billing(query).await?;
     /// println!("Found {} endpoint billing records", records.len());
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn endpoints(&self, query: EndpointBillingQuery) -> Result<BillingRecords> {
-        let response = self
-            .client
-            .get("/billing/endpoints")
-            .query(&query)
-            .send()
-            .await?;
-        let records = response.json().await?;
-        Ok(records)
-    }
+    fn get_endpoint_billing(
+        &self,
+        query: EndpointBillingQuery,
+    ) -> impl Future<Output = Result<BillingRecords>>;
 
     /// Retrieves Network Volume billing history and storage usage metrics.
     ///
@@ -154,9 +139,9 @@ impl BillingService {
     /// patterns. This data is essential for managing storage costs and
     /// optimizing volume utilization across your infrastructure.
     ///
-    /// # Parameters
+    /// # Arguments
     ///
-    /// - `query`: Query parameters for filtering volume billing data
+    /// * `query` - Query parameters for filtering volume billing data
     ///   - `bucket_size`: Time granularity for billing aggregation
     ///   - `grouping`: How to group results (by volume ID, data center, etc.)
     ///   - `start_time`/`end_time`: Time range for billing period
@@ -174,9 +159,10 @@ impl BillingService {
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::{NetworkVolumeBillingQuery, BucketSize, BillingGrouping};
-    /// # async fn example() -> runpod_sdk::Result<()> {
+    /// # use runpod_sdk::service::BillingService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::from_env()?;
     /// let client = RunpodClient::new(config)?;
     ///
@@ -187,22 +173,52 @@ impl BillingService {
     ///     ..Default::default()
     /// };
     ///
-    /// let records = client.billing().network_volumes(query).await?;
+    /// let records = client.get_volume_billing(query).await?;
     /// println!("Found {} volume billing records", records.len());
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn network_volumes(
+    fn get_volume_billing(
         &self,
         query: NetworkVolumeBillingQuery,
-    ) -> Result<BillingRecords> {
-        let response = self
-            .client
-            .get("/billing/networkvolumes")
-            .query(&query)
-            .send()
-            .await?;
-        let records = response.json().await?;
-        Ok(records)
+    ) -> impl Future<Output = Result<BillingRecords>>;
+}
+
+impl BillingService for RunpodClient {
+    fn get_pod_billing(
+        &self,
+        query: PodBillingQuery,
+    ) -> impl Future<Output = Result<BillingRecords>> {
+        async move {
+            let response = self.get("/billing/pods").query(&query).send().await?;
+            let records = response.json().await?;
+            Ok(records)
+        }
+    }
+
+    fn get_endpoint_billing(
+        &self,
+        query: EndpointBillingQuery,
+    ) -> impl Future<Output = Result<BillingRecords>> {
+        async move {
+            let response = self.get("/billing/endpoints").query(&query).send().await?;
+            let records = response.json().await?;
+            Ok(records)
+        }
+    }
+
+    fn get_volume_billing(
+        &self,
+        query: NetworkVolumeBillingQuery,
+    ) -> impl Future<Output = Result<BillingRecords>> {
+        async move {
+            let response = self
+                .get("/billing/networkvolumes")
+                .query(&query)
+                .send()
+                .await?;
+            let records = response.json().await?;
+            Ok(records)
+        }
     }
 }

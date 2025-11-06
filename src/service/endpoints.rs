@@ -1,3 +1,5 @@
+use std::future::Future;
+
 use crate::Result;
 use crate::client::RunpodClient;
 use crate::model::{
@@ -5,25 +7,27 @@ use crate::model::{
     ListEndpointsQuery,
 };
 
-/// Service for managing serverless endpoints.
-#[derive(Debug, Clone)]
-pub struct EndpointsService {
-    client: RunpodClient,
-}
-
-impl EndpointsService {
-    /// Creates a new endpoints service.
-    pub(crate) fn new(client: RunpodClient) -> Self {
-        Self { client }
-    }
-
-    /// Creates a new endpoint.
+/// Trait for managing serverless endpoints.
+///
+/// Provides methods for creating, listing, retrieving, updating, and deleting serverless endpoints.
+/// This trait is implemented on the [`RunpodClient`](crate::client::RunpodClient).
+pub trait EndpointsService {
+    /// Creates a new serverless endpoint.
+    ///
+    /// # Arguments
+    ///
+    /// * `input` - Configuration for the new endpoint
+    ///
+    /// # Returns
+    ///
+    /// Returns the created endpoint information.
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::EndpointCreateInput;
-    /// # async fn example() -> runpod_sdk::Result<()> {
+    /// # use runpod_sdk::service::EndpointsService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::from_env()?;
     /// let client = RunpodClient::new(config)?;
     ///
@@ -35,24 +39,30 @@ impl EndpointsService {
     ///     ..Default::default()
     /// };
     ///
-    /// let endpoint = client.endpoints().create(input).await?;
+    /// let endpoint = client.create_endpoint(input).await?;
     /// println!("Created endpoint: {}", endpoint.id);
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn create(&self, input: EndpointCreateInput) -> Result<Endpoint> {
-        let response = self.client.post("/endpoints").json(&input).send().await?;
-        let endpoint = response.json().await?;
-        Ok(endpoint)
-    }
+    fn create_endpoint(&self, input: EndpointCreateInput)
+    -> impl Future<Output = Result<Endpoint>>;
 
-    /// Lists endpoints.
+    /// Lists serverless endpoints with optional filtering.
+    ///
+    /// # Arguments
+    ///
+    /// * `query` - Query parameters for filtering and including additional information
+    ///
+    /// # Returns
+    ///
+    /// Returns a vector of endpoints matching the query criteria.
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::ListEndpointsQuery;
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use runpod_sdk::service::EndpointsService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
@@ -61,24 +71,30 @@ impl EndpointsService {
     ///     include_workers: Some(true),
     /// };
     ///
-    /// let endpoints = client.endpoints().list(query).await?;
+    /// let endpoints = client.list_endpoints(query).await?;
     /// println!("Found {} endpoints", endpoints.len());
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn list(&self, query: ListEndpointsQuery) -> Result<Endpoints> {
-        let response = self.client.get("/endpoints").query(&query).send().await?;
-        let endpoints = response.json().await?;
-        Ok(endpoints)
-    }
+    fn list_endpoints(&self, query: ListEndpointsQuery) -> impl Future<Output = Result<Endpoints>>;
 
-    /// Gets an endpoint by ID.
+    /// Gets a specific endpoint by ID.
+    ///
+    /// # Arguments
+    ///
+    /// * `endpoint_id` - The unique identifier of the endpoint
+    /// * `query` - Query parameters for including additional information
+    ///
+    /// # Returns
+    ///
+    /// Returns the endpoint information.
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::GetEndpointQuery;
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use runpod_sdk::service::EndpointsService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
@@ -87,25 +103,36 @@ impl EndpointsService {
     ///     ..Default::default()
     /// };
     ///
-    /// let endpoint = client.endpoints().get("endpoint_id", query).await?;
+    /// let endpoint = client.get_endpoint("endpoint_id", query).await?;
     /// println!("Endpoint: {:?}", endpoint);
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn get(&self, endpoint_id: &str, query: GetEndpointQuery) -> Result<Endpoint> {
-        let path = format!("/endpoints/{}", endpoint_id);
-        let response = self.client.get(&path).query(&query).send().await?;
-        let endpoint = response.json().await?;
-        Ok(endpoint)
-    }
+    fn get_endpoint(
+        &self,
+        endpoint_id: &str,
+        query: GetEndpointQuery,
+    ) -> impl Future<Output = Result<Endpoint>>;
 
-    /// Updates an endpoint (triggers a rolling release)
+    /// Updates an existing endpoint.
+    ///
+    /// This operation triggers a rolling release of the endpoint with the new configuration.
+    ///
+    /// # Arguments
+    ///
+    /// * `endpoint_id` - The unique identifier of the endpoint to update
+    /// * `input` - Update parameters for the endpoint
+    ///
+    /// # Returns
+    ///
+    /// Returns the updated endpoint information.
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::EndpointUpdateInput;
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use runpod_sdk::service::EndpointsService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
@@ -114,35 +141,95 @@ impl EndpointsService {
     ///     ..Default::default()
     /// };
     ///
-    /// let endpoint = client.endpoints().update("endpoint_id", input).await?;
+    /// let endpoint = client.update_endpoint("endpoint_id", input).await?;
     /// println!("Updated endpoint: {}", endpoint.id);
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn update(&self, endpoint_id: &str, input: EndpointUpdateInput) -> Result<Endpoint> {
-        let path = format!("/endpoints/{}", endpoint_id);
-        let response = self.client.patch(&path).json(&input).send().await?;
-        let endpoint = response.json().await?;
-        Ok(endpoint)
-    }
+    fn update_endpoint(
+        &self,
+        endpoint_id: &str,
+        input: EndpointUpdateInput,
+    ) -> impl Future<Output = Result<Endpoint>>;
 
     /// Deletes an endpoint.
     ///
+    /// This operation will permanently remove the endpoint and all its associated resources.
+    ///
+    /// # Arguments
+    ///
+    /// * `endpoint_id` - The unique identifier of the endpoint to delete
+    ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
+    /// # use runpod_sdk::service::EndpointsService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
-    /// client.endpoints().delete("endpoint_id").await?;
+    /// client.delete_endpoint("endpoint_id").await?;
     /// println!("Endpoint deleted");
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn delete(&self, endpoint_id: &str) -> Result<()> {
-        let path = format!("/endpoints/{}", endpoint_id);
-        self.client.delete(&path).send().await?;
-        Ok(())
+    fn delete_endpoint(&self, endpoint_id: &str) -> impl Future<Output = Result<()>>;
+}
+
+impl EndpointsService for RunpodClient {
+    fn create_endpoint(
+        &self,
+        input: EndpointCreateInput,
+    ) -> impl Future<Output = Result<Endpoint>> {
+        async move {
+            let response = self.post("/endpoints").json(&input).send().await?;
+            let endpoint = response.json().await?;
+            Ok(endpoint)
+        }
+    }
+
+    fn list_endpoints(&self, query: ListEndpointsQuery) -> impl Future<Output = Result<Endpoints>> {
+        async move {
+            let response = self.get("/endpoints").query(&query).send().await?;
+            let endpoints = response.json().await?;
+            Ok(endpoints)
+        }
+    }
+
+    fn get_endpoint(
+        &self,
+        endpoint_id: &str,
+        query: GetEndpointQuery,
+    ) -> impl Future<Output = Result<Endpoint>> {
+        let endpoint_id = endpoint_id.to_string();
+        async move {
+            let path = format!("/endpoints/{}", endpoint_id);
+            let response = self.get(&path).query(&query).send().await?;
+            let endpoint = response.json().await?;
+            Ok(endpoint)
+        }
+    }
+
+    fn update_endpoint(
+        &self,
+        endpoint_id: &str,
+        input: EndpointUpdateInput,
+    ) -> impl Future<Output = Result<Endpoint>> {
+        let endpoint_id = endpoint_id.to_string();
+        async move {
+            let path = format!("/endpoints/{}", endpoint_id);
+            let response = self.patch(&path).json(&input).send().await?;
+            let endpoint = response.json().await?;
+            Ok(endpoint)
+        }
+    }
+
+    fn delete_endpoint(&self, endpoint_id: &str) -> impl Future<Output = Result<()>> {
+        let endpoint_id = endpoint_id.to_string();
+        async move {
+            let path = format!("/endpoints/{}", endpoint_id);
+            self.delete(&path).send().await?;
+            Ok(())
+        }
     }
 }

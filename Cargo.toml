@@ -11,7 +11,10 @@ edition = "2024"
 license = "MIT"
 publish = false
 
-authors = ["Oleh Martsokha <o.martsokha@gmail.com>"]
+authors = [
+    "Oleh Martsokha <o.martsokha@gmail.com>",
+    "Patrick Barker <https://github.com/pbarker> (Original author)"
+]
 repository = "https://github.com/martsokha/runpod"
 homepage = "https://github.com/martsokha/runpod"
 documentation = "https://docs.rs/runpod-sdk"
@@ -49,7 +52,6 @@ tracing = { version = "0.1", features = [], optional = true }
 
 # Derive macros & utilities
 thiserror = { version = "2.0", features = [] }
-derive_more = { version = "1.0", features = ["display", "from"] }
 strum = { version = "0.27", features = ["derive"], optional = true }
 derive_builder = { version = "0.20", features = [] }
 
