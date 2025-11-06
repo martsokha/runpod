@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-/// Container registry authentication
+/// Container registry authentication.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ContainerRegistryAuth {
@@ -8,10 +8,10 @@ pub struct ContainerRegistryAuth {
     pub name: String,
 }
 
-/// List of container registry auths
+/// List of container registry auths.
 pub type ContainerRegistryAuths = Vec<ContainerRegistryAuth>;
 
-/// Input for creating a container registry auth
+/// Input for creating a container registry auth.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ContainerRegistryAuthCreateInput {

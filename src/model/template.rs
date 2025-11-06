@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use super::common::*;
 
-/// Template category
+/// Template category.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TemplateCategory {
     #[serde(rename = "NVIDIA")]
@@ -13,7 +13,7 @@ pub enum TemplateCategory {
     Cpu,
 }
 
-/// Template resource
+/// Template resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Template {
@@ -37,10 +37,10 @@ pub struct Template {
     pub volume_mount_path: String,
 }
 
-/// List of templates
+/// List of templates.
 pub type Templates = Vec<Template>;
 
-/// Input for creating a template
+/// Input for creating a template.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TemplateCreateInput {
@@ -102,7 +102,7 @@ pub struct TemplateUpdateInput {
     pub volume_mount_path: Option<String>,
 }
 
-/// Query parameters for listing templates
+/// Query parameters for listing templates.
 #[derive(Debug, Clone, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ListTemplatesQuery {
@@ -114,7 +114,7 @@ pub struct ListTemplatesQuery {
     pub include_runpod_templates: Option<bool>,
 }
 
-/// Query parameters for getting a single template
+/// Query parameters for getting a single template.
 #[derive(Debug, Clone, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GetTemplateQuery {

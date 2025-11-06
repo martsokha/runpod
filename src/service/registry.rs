@@ -4,19 +4,19 @@ use crate::model::{
     ContainerRegistryAuth, ContainerRegistryAuthCreateInput, ContainerRegistryAuths,
 };
 
-/// Service for managing container registry authentication
+/// Service for managing container registry authentication.
 #[derive(Debug, Clone)]
 pub struct RegistryService {
     client: RunpodClient,
 }
 
 impl RegistryService {
-    /// Creates a new container registry auth service
+    /// Creates a new container registry auth service.
     pub(crate) fn new(client: RunpodClient) -> Self {
         Self { client }
     }
 
-    /// Creates a new container registry authentication
+    /// Creates a new container registry authentication.
     ///
     /// # Example
     /// ```no_run
@@ -51,7 +51,7 @@ impl RegistryService {
         Ok(auth)
     }
 
-    /// Lists container registry authentications
+    /// Lists all container registry authentications.
     ///
     /// # Example
     /// ```no_run
@@ -71,7 +71,7 @@ impl RegistryService {
         Ok(auths)
     }
 
-    /// Gets a container registry authentication by ID
+    /// Deletes a container registry authentication by ID.
     ///
     /// # Example
     /// ```no_run

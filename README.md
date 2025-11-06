@@ -13,8 +13,8 @@ A Rust client library for the [Runpod API](https://docs.runpod.io/). This SDK pr
 - **Async/Await**: Built on `reqwest` with async/await support
 - **Well Documented**: Comprehensive documentation with examples
 - **Easy Configuration**: Builder pattern for client configuration
-- **Enum Conversions**: String conversions via `strum` for all enums
-- **Optional Tracing**: Built-in tracing support via the `tracing` feature
+- **Optional Features**: Modular features for enum conversions and tracing
+- **Secure**: API keys are automatically masked in debug output
 
 ## Installation
 
@@ -33,13 +33,11 @@ use runpod_sdk::{RunpodClient, RunpodConfig};
 use runpod_sdk::model::ListPodsQuery;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> runpod_sdk::Result<()> {
     // Create a client with your API key
-    let config = RunpodConfig::builder()
+    let client = RunpodConfig::builder()
         .with_api_key("your-api-key")
-        .build()?;
-
-    let client = RunpodClient::new(config)?;
+        .build_client()?;
 
     // List all pods
     let pods = client.pods().list(ListPodsQuery::default()).await?;
@@ -51,119 +49,100 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ## Optional Features
 
+The SDK includes several optional features that can be enabled as needed:
+
 ### Tracing
 
-Enable the `tracing` feature for built-in logging support:
+Enable comprehensive logging and tracing support:
 
 ```toml
 [dependencies]
 runpod-sdk = { version = "0.1.0", features = ["tracing"] }
 ```
 
-This will add trace-level logs for HTTP requests and debug-level logs for client creation.
+This adds trace-level logs for HTTP requests and debug-level logs for client operations.
 
 ### Enum String Conversions
 
-All enums support string conversions via `strum`:
+Enable string conversion methods for all enums:
+
+```toml
+[dependencies]
+runpod-sdk = { version = "0.1.0", features = ["strum"] }
+```
+
+When enabled, all enums support parsing from and converting to strings:
 
 ```rust
-# use runpod_sdk::Result;
-# async fn example() -> Result<()> {
+#[cfg(feature = "strum")]
 use std::str::FromStr;
+#[cfg(feature = "strum")]  
 use runpod_sdk::model::{ComputeType, PodStatus};
 
-// Convert from string
-let compute_type = ComputeType::from_str("GPU")?;
+#[cfg(feature = "strum")]
+fn example() -> Result<(), Box<dyn std::error::Error>> {
+    // Convert from string
+    let compute_type = ComputeType::from_str("GPU")?;
 
-// Convert to string
-let status_str = PodStatus::Running.to_string(); // "RUNNING"
-# Ok(())
-# }
+    // Convert to string  
+    let status_str = PodStatus::Running.to_string(); // "RUNNING"
+    Ok(())
+}
 ```
 
-## Usage Examples
+### All Features
 
-### Managing Pods
+Enable all optional features:
 
-```rust
-# use runpod_sdk::{Result, RunpodClient, RunpodConfig};
-use runpod_sdk::model::{PodCreateInput, ComputeType};
-# async fn example() -> Result<()> {
-# let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
-# let client = RunpodClient::new(config)?;
-
-// Create a new GPU pod
-let input = PodCreateInput {
-    name: Some("My GPU Pod".to_string()),
-    image_name: Some("runpod/pytorch:latest".to_string()),
-    gpu_count: Some(1),
-    compute_type: Some(ComputeType::Gpu),
-    ..Default::default()
-};
-
-let pod = client.pods().create(input).await?;
-println!("Created pod: {}", pod.id);
-
-// Get pod details
-let pod = client.pods().get(&pod.id, Default::default()).await?;
-
-// Start/stop a pod
-client.pods().start(&pod.id).await?;
-client.pods().stop(&pod.id).await?;
-
-// Delete a pod
-client.pods().delete(&pod.id).await?;
-# Ok(())
-# }
+```toml
+[dependencies]
+runpod-sdk = { version = "0.1.0", features = ["tracing", "strum"] }
 ```
 
-### Managing Serverless Endpoints
+## Configuration Options
+
+The SDK offers flexible configuration with multiple approaches:
+
+### Quick Start with Builder
 
 ```rust
-# use runpod_sdk::{Result, RunpodClient, RunpodConfig};
-use runpod_sdk::model::{EndpointCreateInput, ScalerType};
-# async fn example() -> Result<()> {
-# let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
-# let client = RunpodClient::new(config)?;
+use runpod_sdk::RunpodConfig;
 
-// Create a serverless endpoint
-let input = EndpointCreateInput {
-    template_id: "your-template-id".to_string(),
-    name: Some("My Endpoint".to_string()),
-    workers_max: Some(5),
-    workers_min: Some(0),
-    scaler_type: Some(ScalerType::QueueDelay),
-    scaler_value: Some(4),
-    ..Default::default()
-};
-
-let endpoint = client.endpoints().create(input).await?;
-println!("Created endpoint: {}", endpoint.id);
-
-// List endpoints
-let endpoints = client.endpoints().list(Default::default()).await?;
-# Ok(())
-# }
+fn example() -> runpod_sdk::Result<()> {
+    let client = RunpodConfig::builder()
+        .with_api_key("your-api-key")
+        .build_client()?;
+    
+    Ok(())
+}
 ```
 
-
-
-### Configuration with Builder
+### Environment Variables
 
 ```rust
-# use runpod_sdk::{Result, RunpodClient, RunpodConfig};
-# use std::time::Duration;
-# async fn example() -> Result<()> {
+use runpod_sdk::RunpodConfig;
 
-let config = RunpodConfig::builder()
-    .with_api_key("your-api-key")
-    .with_base_url("https://rest.runpod.io/v1")  // Optional, uses default if not set
-    .with_timeout(Duration::from_secs(60))       // Optional, default is 30 seconds
-    .build()?;
+fn example() -> runpod_sdk::Result<()> {
+    // Uses RUNPOD_API_KEY, RUNPOD_BASE_URL, RUNPOD_TIMEOUT_SECS
+    let client = RunpodConfig::from_env()?.build_client()?;
+    Ok(())
+}
+```
 
-let client = RunpodClient::new(config)?;
-# Ok(())
-# }
+### Advanced Configuration
+
+```rust
+use runpod_sdk::RunpodConfig;
+use std::time::Duration;
+
+fn example() -> runpod_sdk::Result<()> {
+    let client = RunpodConfig::builder()
+        .with_api_key("your-api-key")
+        .with_base_url("https://api.runpod.io/v1")
+        .with_timeout(Duration::from_secs(60))
+        .build_client()?;
+    Ok(())
+}
 ```
 
 ## Additional Features
@@ -179,11 +158,9 @@ The SDK provides comprehensive support for all RunPod API operations including:
 
 For complete API documentation and examples, see the [full documentation on docs.rs](https://docs.rs/runpod-sdk).
 
-
-
 ## Examples
 
-Check the `examples/` directory for more detailed usage examples:
+The `examples/` directory contains comprehensive usage examples. To run them:
 
 ```bash
 # Set your API key
@@ -191,6 +168,9 @@ export RUNPOD_API_KEY="your-api-key"
 
 # Run the basic usage example
 cargo run --example basic_usage
+
+# Run the endpoints management example
+cargo run --example manage_endpoints
 ```
 
 ## Contributing

@@ -10,14 +10,14 @@ use crate::service::{
     VolumesService,
 };
 
-/// Inner client state that is shared via Arc for cheap cloning
+/// Inner client state that is shared via Arc for cheap cloning.
 #[derive(Debug)]
 struct RunpodClientInner {
     config: RunpodConfig,
     client: Client,
 }
 
-/// Main Runpod API client
+/// Main Runpod API client.
 ///
 /// This client is cheap to clone as it uses Arc internally for shared state.
 #[derive(Clone)]
@@ -25,17 +25,8 @@ pub struct RunpodClient {
     inner: Arc<RunpodClientInner>,
 }
 
-impl fmt::Debug for RunpodClient {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("RunpodClient")
-            .field("base_url", &self.inner.config.base_url())
-            .field("timeout", &self.inner.config.timeout())
-            .finish()
-    }
-}
-
 impl RunpodClient {
-    /// Creates a new Runpod API client
+    /// Creates a new Runpod API client.
     #[cfg_attr(feature = "tracing", tracing::instrument(skip(config)))]
     pub fn new(config: RunpodConfig) -> Result<Self> {
         let client = Client::builder().timeout(config.timeout()).build()?;
@@ -47,37 +38,37 @@ impl RunpodClient {
         Ok(Self { inner })
     }
 
-    /// Gets the pods service
+    /// Gets the pods service.
     pub fn pods(&self) -> PodsService {
         PodsService::new(self.clone())
     }
 
-    /// Gets the endpoints service
+    /// Gets the endpoints service.
     pub fn endpoints(&self) -> EndpointsService {
         EndpointsService::new(self.clone())
     }
 
-    /// Gets the templates service
+    /// Gets the templates service.
     pub fn templates(&self) -> TemplatesService {
         TemplatesService::new(self.clone())
     }
 
-    /// Gets the volumes service
+    /// Gets the volumes service.
     pub fn volumes(&self) -> VolumesService {
         VolumesService::new(self.clone())
     }
 
-    /// Gets the container registry auth service
+    /// Gets the container registry auth service.
     pub fn container_registry_auth(&self) -> RegistryService {
         RegistryService::new(self.clone())
     }
 
-    /// Gets the billing service
+    /// Gets the billing service.
     pub fn billing(&self) -> BillingService {
         BillingService::new(self.clone())
     }
 
-    /// Creates a GET request
+    /// Creates a GET request.
     pub(crate) fn get(&self, path: &str) -> RequestBuilder {
         let url = format!("{}{}", self.inner.config.base_url(), path);
         self.inner
@@ -86,7 +77,7 @@ impl RunpodClient {
             .bearer_auth(self.inner.config.api_key())
     }
 
-    /// Creates a POST request
+    /// Creates a POST request.
     pub(crate) fn post(&self, path: &str) -> RequestBuilder {
         let url = format!("{}{}", self.inner.config.base_url(), path);
         self.inner
@@ -95,7 +86,7 @@ impl RunpodClient {
             .bearer_auth(self.inner.config.api_key())
     }
 
-    /// Creates a PUT request
+    /// Creates a PUT request.
     #[allow(dead_code)]
     pub(crate) fn put(&self, path: &str) -> RequestBuilder {
         let url = format!("{}{}", self.inner.config.base_url(), path);
@@ -105,7 +96,7 @@ impl RunpodClient {
             .bearer_auth(self.inner.config.api_key())
     }
 
-    /// Creates a PATCH request
+    /// Creates a PATCH request.
     pub(crate) fn patch(&self, path: &str) -> RequestBuilder {
         let url = format!("{}{}", self.inner.config.base_url(), path);
         self.inner
@@ -114,7 +105,7 @@ impl RunpodClient {
             .bearer_auth(self.inner.config.api_key())
     }
 
-    /// Creates a DELETE request
+    /// Creates a DELETE request.
     pub(crate) fn delete(&self, path: &str) -> RequestBuilder {
         let url = format!("{}{}", self.inner.config.base_url(), path);
         self.inner
@@ -124,14 +115,22 @@ impl RunpodClient {
     }
 }
 
+impl fmt::Debug for RunpodClient {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("RunpodClient")
+            .field("api_key", &self.inner.config.masked_api_key())
+            .field("base_url", &self.inner.config.base_url())
+            .field("timeout", &self.inner.config.timeout())
+            .finish()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    type TestResult = std::result::Result<(), Box<dyn std::error::Error>>;
-
     #[test]
-    fn test_client_creation() -> TestResult {
+    fn test_client_creation() -> crate::Result<()> {
         let config = RunpodConfig::builder().with_api_key("test_key").build()?;
 
         let client = RunpodClient::new(config)?;

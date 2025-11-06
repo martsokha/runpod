@@ -5,33 +5,43 @@ use crate::model::{
     Templates,
 };
 
-/// Service for managing templates
+/// Service for managing templates.
 #[derive(Debug, Clone)]
 pub struct TemplatesService {
     client: RunpodClient,
 }
 
 impl TemplatesService {
-    /// Creates a new templates service
+    /// Creates a new templates service.
     pub(crate) fn new(client: RunpodClient) -> Self {
         Self { client }
     }
 
-    /// Creates a new template
+    /// Creates a new template.
     ///
     /// # Example
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # use runpod_sdk::model::TemplateCreateInput;
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
+    /// # async fn example() -> runpod_sdk::Result<()> {
+    /// let config = RunpodConfig::from_env()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let input = TemplateCreateInput {
     ///     name: "My Template".to_string(),
-    ///     image_name: "runpod/pytorch:latest".to_string(),
-    ///     is_serverless: Some(false),
-    ///     ..Default::default()
+    ///     image_name: "my-image:latest".to_string(),
+    ///     docker_start_cmd: None,
+    ///     container_registry_auth_id: None,
+    ///     env: None,
+    ///     readme: None,
+    ///     is_template: None,
+    ///     is_public: None,
+    ///     is_serverless: None,
+    ///     runtime: None,
+    ///     ports: None,
+    ///     volume_in_gb: None,
+    ///     container_disk_in_gb: None,
+    ///     volume_mount_path: None,
     /// };
     ///
     /// let template = client.templates().create(input).await?;
@@ -45,7 +55,7 @@ impl TemplatesService {
         Ok(template)
     }
 
-    /// Lists templates
+    /// Lists templates.
     ///
     /// # Example
     /// ```no_run
@@ -71,7 +81,7 @@ impl TemplatesService {
         Ok(templates)
     }
 
-    /// Gets a template by ID
+    /// Gets a template by ID.
     ///
     /// # Example
     /// ```no_run
@@ -122,7 +132,7 @@ impl TemplatesService {
         Ok(template)
     }
 
-    /// Deletes a template
+    /// Deletes a template.
     ///
     /// # Example
     /// ```no_run

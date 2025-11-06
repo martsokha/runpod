@@ -10,8 +10,6 @@ RUNPOD_API_KEY ?=
 RUNPOD_BASE_URL ?= https://rest.runpod.io/v1
 RUNPOD_TIMEOUT_SECS ?= 30
 
-
-
 # Make-level logger (evaluated by make; does not invoke the shell)
 define make-log
 $(info [$(shell date '+%Y-%m-%d %H:%M:%S')] [MAKE] [$(MAKECMDGOALS)] $(1))
@@ -21,15 +19,6 @@ endef
 define shell-log
 printf "[%s] [MAKE] [$(MAKECMDGOALS)] $(1)\n" "$$(date '+%Y-%m-%d %H:%M:%S')"
 endef
-
-.PHONY: help
-help: ## Show this help message
-	@echo "RunPod SDK Makefile"
-	@echo ""
-	@echo "Usage: make <target>"
-	@echo ""
-	@echo "Targets:"
-	@awk 'BEGIN {FS = ":.*## "; printf "\n"} /^[a-zA-Z_-]+:.*?## .*$$/ { printf "  %-20s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
 .PHONY: setup
 setup: install-tools env ## Complete project setup

@@ -5,33 +5,42 @@ use crate::model::{
     ListEndpointsQuery,
 };
 
-/// Service for managing serverless endpoints
+/// Service for managing serverless endpoints.
 #[derive(Debug, Clone)]
 pub struct EndpointsService {
     client: RunpodClient,
 }
 
 impl EndpointsService {
-    /// Creates a new endpoints service
+    /// Creates a new endpoints service.
     pub(crate) fn new(client: RunpodClient) -> Self {
         Self { client }
     }
 
-    /// Creates a new endpoint
+    /// Creates a new endpoint.
     ///
     /// # Example
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # use runpod_sdk::model::EndpointCreateInput;
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
+    /// # async fn example() -> runpod_sdk::Result<()> {
+    /// let config = RunpodConfig::from_env()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let input = EndpointCreateInput {
     ///     template_id: "template_id".to_string(),
     ///     name: Some("My Endpoint".to_string()),
-    ///     workers_max: Some(5),
-    ///     ..Default::default()
+    ///     workers_max: Some(3),
+    ///     workers_min: Some(0),
+    ///     scaler_type: None,
+    ///     scaler_value: None,
+    ///     active_workers: None,
+    ///     gpu_ids: None,
+    ///     network_volume_id: None,
+    ///     locations: None,
+    ///     idle_timeout: None,
+    ///     scaler_settings: None,
+    ///     network_volume_ids: None,
     /// };
     ///
     /// let endpoint = client.endpoints().create(input).await?;
@@ -45,7 +54,7 @@ impl EndpointsService {
         Ok(endpoint)
     }
 
-    /// Lists endpoints
+    /// Lists endpoints.
     ///
     /// # Example
     /// ```no_run
@@ -71,7 +80,7 @@ impl EndpointsService {
         Ok(endpoints)
     }
 
-    /// Gets an endpoint by ID
+    /// Gets an endpoint by ID.
     ///
     /// # Example
     /// ```no_run
@@ -125,7 +134,7 @@ impl EndpointsService {
         Ok(endpoint)
     }
 
-    /// Deletes an endpoint
+    /// Deletes an endpoint.
     ///
     /// # Example
     /// ```no_run

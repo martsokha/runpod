@@ -1,5 +1,5 @@
 pub(crate) mod config;
 mod runpod;
 
-pub use config::{RunpodConfig, RunpodConfigBuilder};
+pub use config::{RunpodBuilder, RunpodConfig};
 pub use runpod::RunpodClient;

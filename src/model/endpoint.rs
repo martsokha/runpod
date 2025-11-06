@@ -1,21 +1,23 @@
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "strum")]
 use strum::{Display, EnumString};
 
 use super::common::*;
 use super::pod::Pod;
 use super::template::Template;
 
-/// Scaler type for endpoints
+/// Scaler type for endpoints.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[derive(Serialize, Deserialize, Display, EnumString)]
+#[derive(Serialize, Deserialize)]
+#[cfg_attr(feature = "strum", derive(Display, EnumString))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
+#[cfg_attr(feature = "strum", strum(serialize_all = "SCREAMING_SNAKE_CASE"))]
 pub enum ScalerType {
     QueueDelay,
     RequestCount,
 }
 
-/// Endpoint resource
+/// Endpoint resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Endpoint {
@@ -45,10 +47,10 @@ pub struct Endpoint {
     pub workers: Option<Vec<Pod>>,
 }
 
-/// List of endpoints
+/// List of endpoints.
 pub type Endpoints = Vec<Endpoint>;
 
-/// Input for creating an endpoint
+/// Input for creating an endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EndpointCreateInput {
@@ -125,7 +127,7 @@ pub struct EndpointUpdateInput {
     pub workers_min: Option<i32>,
 }
 
-/// Query parameters for listing endpoints
+/// Query parameters for listing endpoints.
 #[derive(Debug, Clone, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ListEndpointsQuery {
@@ -135,7 +137,7 @@ pub struct ListEndpointsQuery {
     pub include_workers: Option<bool>,
 }
 
-/// Query parameters for getting a single endpoint
+/// Query parameters for getting a single endpoint.
 #[derive(Debug, Clone, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GetEndpointQuery {

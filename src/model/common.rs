@@ -1,67 +1,41 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "strum")]
 use strum::{Display, EnumString};
 
-/// Compute type for resources
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    Serialize,
-    Deserialize,
-    Display,
-    EnumString
-)]
+/// Compute type for resources.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "strum", derive(Display, EnumString))]
 #[serde(rename_all = "UPPERCASE")]
-#[strum(serialize_all = "UPPERCASE")]
+#[cfg_attr(feature = "strum", strum(serialize_all = "UPPERCASE"))]
 pub enum ComputeType {
     Gpu,
     Cpu,
 }
 
-/// Cloud type
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    Serialize,
-    Deserialize,
-    Display,
-    EnumString
-)]
+/// Cloud type.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "strum", derive(Display, EnumString))]
 #[serde(rename_all = "UPPERCASE")]
-#[strum(serialize_all = "UPPERCASE")]
+#[cfg_attr(feature = "strum", strum(serialize_all = "UPPERCASE"))]
 pub enum CloudType {
     Secure,
     Community,
 }
 
-/// Status of a Pod
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    Serialize,
-    Deserialize,
-    Display,
-    EnumString
-)]
+/// Status of a Pod.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "strum", derive(Display, EnumString))]
 #[serde(rename_all = "UPPERCASE")]
-#[strum(serialize_all = "UPPERCASE")]
+#[cfg_attr(feature = "strum", strum(serialize_all = "UPPERCASE"))]
 pub enum PodStatus {
     Running,
     Exited,
     Terminated,
 }
 
-/// CUDA versions
+/// CUDA versions.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum CudaVersion {
     #[serde(rename = "12.8")]
@@ -86,7 +60,7 @@ pub enum CudaVersion {
     V11_8,
 }
 
-/// GPU types available
+/// GPU types available.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum GpuTypeId {
     #[serde(rename = "NVIDIA GeForce RTX 4090")]
@@ -167,20 +141,11 @@ pub enum GpuTypeId {
     NvidiaB200,
 }
 
-/// CPU flavor IDs
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    Serialize,
-    Deserialize,
-    Display,
-    EnumString
-)]
+/// CPU flavor IDs.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "strum", derive(Display, EnumString))]
 #[serde(rename_all = "lowercase")]
-#[strum(serialize_all = "lowercase")]
+#[cfg_attr(feature = "strum", strum(serialize_all = "lowercase"))]
 pub enum CpuFlavorId {
     Cpu3c,
     Cpu3g,
@@ -190,7 +155,7 @@ pub enum CpuFlavorId {
     Cpu5m,
 }
 
-/// Data center IDs
+/// Data center IDs.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum DataCenterId {
     #[serde(rename = "EU-RO-1")]
@@ -247,7 +212,7 @@ pub enum DataCenterId {
     UsGa1,
 }
 
-/// GPU information
+/// GPU information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GpuInfo {
@@ -264,7 +229,7 @@ pub struct GpuInfo {
     pub secure_spot_price: f64,
 }
 
-/// CPU type information
+/// CPU type information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CpuType {
@@ -275,7 +240,7 @@ pub struct CpuType {
     pub group_id: String,
 }
 
-/// Machine information
+/// Machine information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Machine {
@@ -302,7 +267,7 @@ pub struct Machine {
     pub gpu_display_name: Option<String>,
 }
 
-/// Savings plan
+/// Savings plan.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SavingsPlan {
@@ -314,7 +279,7 @@ pub struct SavingsPlan {
     pub start_time: String,
 }
 
-/// Network volume information
+/// Network volume information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NetworkVolume {
@@ -324,8 +289,8 @@ pub struct NetworkVolume {
     pub data_center_id: String,
 }
 
-/// Environment variables
+/// Environment variables.
 pub type EnvVars = HashMap<String, String>;
 
-/// Port mappings
+/// Port mappings.
 pub type PortMappings = HashMap<String, i32>;

@@ -2,19 +2,19 @@ use crate::Result;
 use crate::client::RunpodClient;
 use crate::model::{GetPodQuery, ListPodsQuery, Pod, PodCreateInput, PodUpdateInput, Pods};
 
-/// Service for managing pods
+/// Service for managing pods.
 #[derive(Debug, Clone)]
 pub struct PodsService {
     client: RunpodClient,
 }
 
 impl PodsService {
-    /// Creates a new pods service
+    /// Creates a new pods service.
     pub(crate) fn new(client: RunpodClient) -> Self {
         Self { client }
     }
 
-    /// Creates a new pod
+    /// Creates a new pod.
     ///
     /// # Example
     /// ```no_run
@@ -41,7 +41,7 @@ impl PodsService {
         Ok(pod)
     }
 
-    /// Lists pods
+    /// Lists pods.
     ///
     /// # Example
     /// ```no_run
@@ -67,7 +67,7 @@ impl PodsService {
         Ok(pods)
     }
 
-    /// Gets a pod by ID
+    /// Gets a pod by ID.
     ///
     /// # Example
     /// ```no_run
@@ -94,7 +94,7 @@ impl PodsService {
         Ok(pod)
     }
 
-    /// Updates a pod
+    /// Updates a pod.
     ///
     /// # Example
     /// ```no_run
@@ -121,7 +121,7 @@ impl PodsService {
         Ok(pod)
     }
 
-    /// Deletes a pod
+    /// Deletes a pod.
     ///
     /// # Example
     /// ```no_run
@@ -141,7 +141,7 @@ impl PodsService {
         Ok(())
     }
 
-    /// Start or resume a pod
+    /// Start or resume a pod.
     ///
     /// # Example
     /// ```no_run
@@ -161,7 +161,7 @@ impl PodsService {
         Ok(())
     }
 
-    /// Stops a pod
+    /// Stops a pod.
     ///
     /// # Example
     /// ```no_run
@@ -181,7 +181,7 @@ impl PodsService {
         Ok(())
     }
 
-    /// Reset a pod
+    /// Reset a pod.
     ///
     /// # Example
     /// ```no_run
@@ -201,7 +201,7 @@ impl PodsService {
         Ok(())
     }
 
-    /// Restarts a pod
+    /// Restarts a pod.
     ///
     /// # Example
     /// ```no_run

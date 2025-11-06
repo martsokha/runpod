@@ -4,19 +4,19 @@ use crate::model::{
     NetworkVolume, NetworkVolumeCreateInput, NetworkVolumeUpdateInput, NetworkVolumes,
 };
 
-/// Service for managing network volumes
+/// Service for managing network volumes.
 #[derive(Debug, Clone)]
 pub struct VolumesService {
     client: RunpodClient,
 }
 
 impl VolumesService {
-    /// Creates a new network volumes service
+    /// Creates a new network volumes service.
     pub(crate) fn new(client: RunpodClient) -> Self {
         Self { client }
     }
 
-    /// Creates a new network volume
+    /// Creates a new network volume.
     ///
     /// # Example
     /// ```no_run
@@ -48,7 +48,7 @@ impl VolumesService {
         Ok(volume)
     }
 
-    /// Lists network volumes
+    /// Lists network volumes.
     ///
     /// # Example
     /// ```no_run
@@ -68,7 +68,7 @@ impl VolumesService {
         Ok(volumes)
     }
 
-    /// Gets a network volume by ID
+    /// Gets a network volume by ID.
     ///
     /// # Example
     /// ```no_run
@@ -89,7 +89,7 @@ impl VolumesService {
         Ok(volume)
     }
 
-    /// Updates a network volume
+    /// Updates a network volume.
     ///
     /// # Example
     /// ```no_run
@@ -120,7 +120,7 @@ impl VolumesService {
         Ok(volume)
     }
 
-    /// Deletes a network volume
+    /// Deletes a network volume.
     ///
     /// # Example
     /// ```no_run

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use super::common::*;
 
-/// Pod resource
+/// Pod resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Pod {
@@ -45,10 +45,10 @@ pub struct Pod {
     pub savings_plans: Option<Vec<SavingsPlan>>,
 }
 
-/// List of pods
+/// List of pods.
 pub type Pods = Vec<Pod>;
 
-/// Input for creating a pod
+/// Input for creating a pod.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PodCreateInput {
@@ -120,7 +120,7 @@ pub struct PodCreateInput {
     pub volume_mount_path: Option<String>,
 }
 
-/// Input for updating a pod
+/// Input for updating a pod.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PodUpdateInput {
@@ -150,7 +150,7 @@ pub struct PodUpdateInput {
     pub volume_mount_path: Option<String>,
 }
 
-/// Query parameters for listing pods
+/// Query parameters for listing pods.
 #[derive(Debug, Clone, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ListPodsQuery {

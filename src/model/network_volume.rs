@@ -2,10 +2,10 @@ use serde::{Deserialize, Serialize};
 
 pub use super::common::NetworkVolume;
 
-/// List of network volumes
+/// List of network volumes.
 pub type NetworkVolumes = Vec<NetworkVolume>;
 
-/// Input for creating a network volume
+/// Input for creating a network volume.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NetworkVolumeCreateInput {
@@ -14,7 +14,7 @@ pub struct NetworkVolumeCreateInput {
     pub data_center_id: String,
 }
 
-/// Input for updating a network volume
+/// Input for updating a network volume.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NetworkVolumeUpdateInput {

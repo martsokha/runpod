@@ -1,13 +1,14 @@
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "strum")]
 use strum::{Display, EnumString};
 
 use super::common::GpuTypeId;
 
-/// Billing time bucket size
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[derive(Serialize, Deserialize, Display, EnumString)]
+/// Billing time bucket size.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "strum", derive(Display, EnumString))]
 #[serde(rename_all = "lowercase")]
-#[strum(serialize_all = "lowercase")]
+#[cfg_attr(feature = "strum", strum(serialize_all = "lowercase"))]
 pub enum BucketSize {
     Hour,
     Day,
@@ -16,18 +17,18 @@ pub enum BucketSize {
     Year,
 }
 
-/// Grouping for billing records
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[derive(Serialize, Deserialize, Display, EnumString)]
+/// Grouping for billing records.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "strum", derive(Display, EnumString))]
 #[serde(rename_all = "camelCase")]
-#[strum(serialize_all = "camelCase")]
+#[cfg_attr(feature = "strum", strum(serialize_all = "camelCase"))]
 pub enum BillingGrouping {
     PodId,
     EndpointId,
     GpuTypeId,
 }
 
-/// Billing record
+/// Billing record.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BillingRecord {
@@ -45,10 +46,10 @@ pub struct BillingRecord {
     pub time_billed_ms: Option<i64>,
 }
 
-/// List of billing records
+/// List of billing records.
 pub type BillingRecords = Vec<BillingRecord>;
 
-/// Query parameters for pod billing
+/// Query parameters for pod billing.
 #[derive(Debug, Clone, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PodBillingQuery {
@@ -66,7 +67,7 @@ pub struct PodBillingQuery {
     pub start_time: Option<String>,
 }
 
-/// Query parameters for endpoint billing
+/// Query parameters for endpoint billing.
 #[derive(Debug, Clone, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EndpointBillingQuery {
@@ -90,7 +91,7 @@ pub struct EndpointBillingQuery {
     pub template_id: Option<String>,
 }
 
-/// Query parameters for network volume billing
+/// Query parameters for network volume billing.
 #[derive(Debug, Clone, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NetworkVolumeBillingQuery {
