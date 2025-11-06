@@ -22,7 +22,7 @@ pub trait VolumesService {
     /// Returns the created network volume information.
     ///
     /// # Example
-    /// 
+    ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::NetworkVolumeCreateInput;
@@ -54,7 +54,7 @@ pub trait VolumesService {
     /// Returns a vector of all network volumes associated with the account.
     ///
     /// # Example
-    /// 
+    ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::service::VolumesService;
@@ -80,7 +80,7 @@ pub trait VolumesService {
     /// Returns the network volume information.
     ///
     /// # Example
-    /// 
+    ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::service::VolumesService;
@@ -107,7 +107,7 @@ pub trait VolumesService {
     /// Returns the updated network volume information.
     ///
     /// # Example
-    /// 
+    ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::NetworkVolumeUpdateInput;
@@ -141,7 +141,7 @@ pub trait VolumesService {
     /// * `volume_id` - The unique identifier of the volume to delete
     ///
     /// # Example
-    /// 
+    ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::service::VolumesService;
