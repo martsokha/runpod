@@ -15,10 +15,10 @@ targets = [
 db-path = "~/.cargo/advisory-db"
 # The url(s) of the advisory databases to use
 db-urls = ["https://github.com/rustsec/advisory-db"]
-# The lint level for unmaintained crates
-unmaintained = "deny"
-# The lint level for crates that have been yanked from their source registry
-yanked = "deny"
+# The lint level for unmaintained crates (all = deny all unmaintained)
+unmaintained = "all"
+# The lint level for crates that have been yanked from their source registry (all = deny all yanked)
+yanked = "all"
 # A list of advisory IDs to ignore
 ignore = [
     # Add specific advisory IDs to ignore if needed
