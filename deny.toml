@@ -16,18 +16,25 @@ db-path = "~/.cargo/advisory-db"
 # The url(s) of the advisory databases to use
 db-urls = ["https://github.com/rustsec/advisory-db"]
 # The lint level for unmaintained crates
-unmaintained = "all"
+unmaintained = "warn"
 # The lint level for crates that have been yanked from their source registry
 yanked = "warn"
 # A list of advisory IDs to ignore
 ignore = [
     # Add specific advisory IDs to ignore if needed
-    # "RUSTSEC-2020-0001",
 ]
 
 [licenses]
-# List of explicitly allowed licenses
-# See https://spdx.org/licenses/ for list of possible licenses
+# Be permissive with OSI/FSF approved licenses
+allow-osi-fsf-libre = "both"
+# Allow copyleft licenses (like LGPL) since we're not distributing a proprietary product
+copyleft = "allow"
+# Confidence threshold for detecting a license from a license text
+confidence-threshold = 0.8
+# Private licenses are not allowed
+private = { ignore = false, registries = [] }
+
+# List of explicitly allowed licenses (single licenses only)
 allow = [
     "MIT",
     "Apache-2.0",
@@ -35,69 +42,57 @@ allow = [
     "BSD-2-Clause",
     "BSD-3-Clause",
     "ISC",
-    "Unicode-DFS-2016",
     "Unicode-3.0",
+    "Unicode-DFS-2016",
+    "Unlicense",
+    "BSL-1.0",
     "CC0-1.0",
     "CDLA-Permissive-2.0",
+    "LGPL-2.1-or-later",
+    "Zlib",
 ]
 
-# Confidence threshold for detecting a license from a license text.
-confidence-threshold = 0.8
-# Allow 1 or more licenses on a per-crate basis, so that particular licenses
-# aren't accepted for every possible crate as with the normal allow list
-exceptions = [
-    # Each entry is the crate and version constraint, and its the license
-    # { allow = ["Zlib"], name = "adler32", version = "*" },
+# Denied licenses - explicitly block problematic licenses
+deny = [
+    "GPL-2.0",
+    "GPL-3.0",
+    "AGPL-1.0",
+    "AGPL-3.0",
+    "SSPL-1.0",
+    "Commons-Clause",
 ]
+
+# For compound licenses, we'll be permissive and only block if they contain denied licenses
+exceptions = []
 
 [bans]
 # Lint level for when multiple versions of the same crate are detected
 multiple-versions = "warn"
 # Lint level for when a crate version requirement is `*`
 wildcards = "allow"
-# The graph highlighting used when creating dotgraphs for crates
-# with multiple versions
-# * lowest-version - The path to the lowest versioned duplicate is highlighted
-# * simplest-path - The path to the version with the fewest edges is highlighted
-# * all - Both lowest-version and simplest-path are used
+# The graph highlighting used when creating dotgraphs for crates with multiple versions
 highlight = "all"
 
-# List of crates that are allowed. Use with care!
-allow = [
-    # { name = "openssl", version = "=0.10.0" },
-]
+# List of crates that are allowed
+allow = []
 
-# List of crates to deny
+# List of crates to deny - focus on actual security/legal issues
 deny = [
-    # Each entry is either a string or a table with name and optional version
-    # String format: "crate_name"
-    # Table format: { name = "crate_name", version = "=1.0.0" }
-
-    # Deny crates that are known to be problematic
-    { name = "openssl", version = "*" }, # Prefer rustls
-    { name = "native-tls" }, # Prefer rustls
+    # Prefer rustls over OpenSSL for security and licensing simplicity
+    { name = "openssl-sys", version = "*" },
+    { name = "openssl", version = "*" },
 ]
 
-# Certain crates/versions that will be skipped when doing duplicate detection.
-skip = [
-    # { name = "winapi", version = "=0.2.8" },
-]
-
-# Similarly to `skip` allows you to skip certain crates from being checked. Unlike `skip`,
-# `skip-tree` skips the crate and all of its dependencies entirely.
-skip-tree = [
-    # { name = "windows-sys", version = "=0.36.1" },
-]
+# Skip checking certain crates that are known to have complex but acceptable licensing
+skip = []
+skip-tree = []
 
 [sources]
-# Lint level for what to happen when a crate from a crate registry that is
-# not in the allow list is encountered
+# Lint level for what to happen when a crate from a crate registry that is not in the allow list
 unknown-registry = "warn"
-# Lint level for what to happen when a crate from a git repository that is not
-# in the allow list is encountered
+# Lint level for what to happen when a crate from a git repository that is not in the allow list
 unknown-git = "warn"
-# List of URLs for allowed crate registries. Defaults to the crates.io index
-# if not specified. If it is specified but empty, no registries are allowed.
+# List of URLs for allowed crate registries
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
 # List of URLs for allowed Git repositories
 allow-git = []

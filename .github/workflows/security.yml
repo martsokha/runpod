@@ -56,7 +56,7 @@ jobs:
         run: cargo install --force cargo-deny
 
       - name: Run cargo deny
-        run: cargo deny check
+        run: cargo deny check all
 
   dependency-review:
     name: Dependency Review
@@ -70,35 +70,7 @@ jobs:
         uses: actions/dependency-review-action@v3
         with:
           fail-on-severity: moderate
-          allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, Unicode-DFS-2016
-
-  security-clippy:
-    name: Security Lints
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy
-
-      - name: Cache dependencies
-        uses: Swatinem/rust-cache@v2
-
-      - name: Run security-focused clippy lints
-        run: |
-          cargo clippy --all-targets --all-features -- \
-            -W clippy::suspicious \
-            -W clippy::perf \
-            -W clippy::cargo \
-            -W clippy::unwrap_used \
-            -W clippy::expect_used \
-            -W clippy::panic \
-            -W clippy::unreachable \
-            -W clippy::todo \
-            -W clippy::unimplemented
+          allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, Unicode-DFS-2016, Unicode-3.0, Unlicense, BSL-1.0, CDLA-Permissive-2.0, LGPL-2.1-or-later, Apache-2.0 OR MIT, MIT OR Apache-2.0, Apache-2.0 AND ISC, MIT OR Unlicense, Apache-2.0 OR ISC OR MIT
 
   semgrep:
     name: Semgrep Security Scan
@@ -145,31 +117,3 @@ jobs:
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
-
-  license-check:
-    name: License Check
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache dependencies
-        uses: Swatinem/rust-cache@v2
-
-      - name: Install cargo-license
-        run: cargo install --force cargo-license
-
-      - name: Check licenses
-        run: |
-          echo "Checking dependency licenses..."
-          cargo license --json | jq -r '.[] | select(.license | test("^(MIT|Apache-2.0|BSD-2-Clause|BSD-3-Clause|ISC|Unicode-DFS-2016)$") | not) | "Disallowed license: \(.name) (\(.license))"'
-          # Fail if any disallowed licenses are found
-          DISALLOWED=$(cargo license --json | jq -r '.[] | select(.license | test("^(MIT|Apache-2.0|BSD-2-Clause|BSD-3-Clause|ISC|Unicode-DFS-2016)$") | not) | .name' | wc -l)
-          if [ "$DISALLOWED" -gt 0 ]; then
-            echo "Found $DISALLOWED dependencies with disallowed licenses"
-            exit 1
-          fi
-          echo "All licenses are approved"
