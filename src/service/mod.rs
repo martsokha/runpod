@@ -1,9 +1,9 @@
-pub(crate) mod billing;
-pub(crate) mod endpoints;
-pub(crate) mod pods;
-pub(crate) mod registry;
-pub(crate) mod templates;
-pub(crate) mod volumes;
+mod billing;
+mod endpoints;
+mod pods;
+mod registry;
+mod templates;
+mod volumes;
 
 pub use billing::BillingService;
 pub use endpoints::EndpointsService;

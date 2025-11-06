@@ -1,5 +1,5 @@
-use crate::client::RunpodClient;
 use crate::Result;
+use crate::client::RunpodClient;
 use crate::model::{
     BillingRecords, EndpointBillingQuery, NetworkVolumeBillingQuery, PodBillingQuery,
 };
@@ -11,19 +11,19 @@ pub struct BillingService {
 }
 
 impl BillingService {
-    /// Create a new billing service
+    /// Creates a new billing service
     pub(crate) fn new(client: RunpodClient) -> Self {
         Self { client }
     }
 
-    /// Retrieve Pod billing history
+    /// Retrieves Pod billing history
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # use runpod_sdk::model::{PodBillingQuery, BucketSize};
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let query = PodBillingQuery {
@@ -53,10 +53,10 @@ impl BillingService {
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # use runpod_sdk::model::{EndpointBillingQuery, BucketSize};
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let query = EndpointBillingQuery {
@@ -81,14 +81,14 @@ impl BillingService {
         Ok(records)
     }
 
-    /// Retrieve network volume billing history
+    /// Retrieves Network Volume billing history
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # use runpod_sdk::model::{NetworkVolumeBillingQuery, BucketSize};
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let query = NetworkVolumeBillingQuery {

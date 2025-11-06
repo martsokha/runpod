@@ -1,36 +1,47 @@
 version: 2
 updates:
-  # Enable version updates for Cargo dependencies
+  # Version updates for Cargo Crates
   - package-ecosystem: "cargo"
     directory: "/"
     schedule:
       interval: "weekly"
+      timezone: "Europe/Berlin"
       day: "monday"
-    open-pull-requests-limit: 10
+      time: "04:00"
+    open-pull-requests-limit: 5
     labels:
-      - "dependencies"
-      - "rust"
+      - "chore"
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+      include: "scope"
+    rebase-strategy: "auto"
+    versioning-strategy: "auto"
+    # Group patch and minor updates together to reduce PR noise
     groups:
-      # Group all patch updates together
-      patch:
-        patterns:
-          - "*"
-        update-types:
-          - "patch"
-      # Group all minor updates together
-      minor:
+      rust-dependencies:
         patterns:
           - "*"
         update-types:
           - "minor"
+          - "patch"
 
-  # Enable version updates for GitHub Actions
+  # Version updates for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+      timezone: "Europe/Berlin"
       day: "monday"
+      time: "04:00"
     open-pull-requests-limit: 5
     labels:
-      - "dependencies"
-      - "github-actions"
+      - "chore"
+    commit-message:
+      prefix: "chore(actions)"
+      include: "scope"
+    # Group all GitHub Actions updates together
+    groups:
+      github-actions:
+        patterns:
+          - "*"

@@ -12,19 +12,19 @@ pub struct EndpointsService {
 }
 
 impl EndpointsService {
-    /// Create a new endpoints service
+    /// Creates a new endpoints service
     pub(crate) fn new(client: RunpodClient) -> Self {
         Self { client }
     }
 
-    /// Create a new endpoint
+    /// Creates a new endpoint
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # use runpod_sdk::model::EndpointCreateInput;
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let input = EndpointCreateInput {
@@ -45,14 +45,14 @@ impl EndpointsService {
         Ok(endpoint)
     }
 
-    /// List endpoints
+    /// Lists endpoints
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # use runpod_sdk::model::ListEndpointsQuery;
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let query = ListEndpointsQuery {
@@ -71,14 +71,14 @@ impl EndpointsService {
         Ok(endpoints)
     }
 
-    /// Get an endpoint by ID
+    /// Gets an endpoint by ID
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # use runpod_sdk::model::GetEndpointQuery;
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let query = GetEndpointQuery {
@@ -98,14 +98,14 @@ impl EndpointsService {
         Ok(endpoint)
     }
 
-    /// Update an endpoint (triggers a rolling release)
+    /// Updates an endpoint (triggers a rolling release)
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # use runpod_sdk::model::EndpointUpdateInput;
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let input = EndpointUpdateInput {
@@ -125,13 +125,13 @@ impl EndpointsService {
         Ok(endpoint)
     }
 
-    /// Delete an endpoint
+    /// Deletes an endpoint
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// client.endpoints().delete("endpoint_id").await?;

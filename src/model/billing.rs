@@ -4,7 +4,8 @@ use strum::{Display, EnumString};
 use super::common::GpuTypeId;
 
 /// Billing time bucket size
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display, EnumString)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Display, EnumString)]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum BucketSize {
@@ -16,7 +17,8 @@ pub enum BucketSize {
 }
 
 /// Grouping for billing records
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display, EnumString)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Display, EnumString)]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
 pub enum BillingGrouping {

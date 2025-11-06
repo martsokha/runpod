@@ -12,19 +12,19 @@ pub struct TemplatesService {
 }
 
 impl TemplatesService {
-    /// Create a new templates service
+    /// Creates a new templates service
     pub(crate) fn new(client: RunpodClient) -> Self {
         Self { client }
     }
 
-    /// Create a new template
+    /// Creates a new template
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # use runpod_sdk::model::TemplateCreateInput;
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let input = TemplateCreateInput {
@@ -45,14 +45,14 @@ impl TemplatesService {
         Ok(template)
     }
 
-    /// List templates
+    /// Lists templates
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # use runpod_sdk::model::ListTemplatesQuery;
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let query = ListTemplatesQuery {
@@ -71,14 +71,14 @@ impl TemplatesService {
         Ok(templates)
     }
 
-    /// Get a template by ID
+    /// Gets a template by ID
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # use runpod_sdk::model::GetTemplateQuery;
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let query = GetTemplateQuery::default();
@@ -95,14 +95,14 @@ impl TemplatesService {
         Ok(template)
     }
 
-    /// Update a template (triggers rolling release for associated endpoints)
+    /// Updates a template (triggers rolling release for associated endpoints)
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # use runpod_sdk::model::TemplateUpdateInput;
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let input = TemplateUpdateInput {
@@ -122,13 +122,13 @@ impl TemplatesService {
         Ok(template)
     }
 
-    /// Delete a template
+    /// Deletes a template
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// client.templates().delete("template_id").await?;

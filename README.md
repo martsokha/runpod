@@ -1,10 +1,8 @@
 # Runpod SDK
 
-[![Crates.io](https://img.shields.io/crates/v/runpod-sdk.svg)](https://crates.io/crates/runpod-sdk)
-[![Documentation](https://docs.rs/runpod-sdk/badge.svg)](https://docs.rs/runpod-sdk)
-[![License](https://img.shields.io/crates/l/runpod-sdk.svg)](https://github.com/martsokha/runpod/blob/main/LICENSE.txt)
-[![Build Status](https://github.com/martsokha/runpod/workflows/CI/badge.svg)](https://github.com/martsokha/runpod/actions)
-[![Rust Version](https://img.shields.io/badge/rust-1.89%2B-blue.svg)](https://www.rust-lang.org)
+[![Crates.io](https://img.shields.io/crates/v/runpod-sdk?style=flat-square&color=black)](https://crates.io/crates/runpod-sdk)
+[![Documentation](https://img.shields.io/docsrs/runpod-sdk?style=flat-square&color=black)](https://docs.rs/runpod-sdk)
+[![Build](https://img.shields.io/github/actions/workflow/status/martsokha/runpod/build.yml?style=flat-square&color=black)](https://github.com/martsokha/runpod/actions)
 
 A Rust client library for the [Runpod API](https://docs.runpod.io/). This SDK provides a type-safe, ergonomic interface for managing Pods, Serverless endpoints, templates, network volumes, and more.
 
@@ -31,14 +29,14 @@ tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
 ## Quick Start
 
 ```rust
-use runpod_sdk::{Config, RunpodClient};
+use runpod_sdk::{RunpodClient, RunpodConfig};
 use runpod_sdk::model::ListPodsQuery;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create a client with your API key
-    let config = Config::builder()
-        .api_key("your-api-key")
+    let config = RunpodConfig::builder()
+        .with_api_key("your-api-key")
         .build()?;
 
     let client = RunpodClient::new(config)?;
@@ -69,6 +67,8 @@ This will add trace-level logs for HTTP requests and debug-level logs for client
 All enums support string conversions via `strum`:
 
 ```rust
+# use runpod_sdk::Result;
+# async fn example() -> Result<()> {
 use std::str::FromStr;
 use runpod_sdk::model::{ComputeType, PodStatus};
 
@@ -77,6 +77,8 @@ let compute_type = ComputeType::from_str("GPU")?;
 
 // Convert to string
 let status_str = PodStatus::Running.to_string(); // "RUNNING"
+# Ok(())
+# }
 ```
 
 ## Usage Examples
@@ -84,7 +86,11 @@ let status_str = PodStatus::Running.to_string(); // "RUNNING"
 ### Managing Pods
 
 ```rust
+# use runpod_sdk::{Result, RunpodClient, RunpodConfig};
 use runpod_sdk::model::{PodCreateInput, ComputeType};
+# async fn example() -> Result<()> {
+# let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
+# let client = RunpodClient::new(config)?;
 
 // Create a new GPU pod
 let input = PodCreateInput {
@@ -107,12 +113,18 @@ client.pods().stop(&pod.id).await?;
 
 // Delete a pod
 client.pods().delete(&pod.id).await?;
+# Ok(())
+# }
 ```
 
 ### Managing Serverless Endpoints
 
 ```rust
+# use runpod_sdk::{Result, RunpodClient, RunpodConfig};
 use runpod_sdk::model::{EndpointCreateInput, ScalerType};
+# async fn example() -> Result<()> {
+# let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
+# let client = RunpodClient::new(config)?;
 
 // Create a serverless endpoint
 let input = EndpointCreateInput {
@@ -130,94 +142,44 @@ println!("Created endpoint: {}", endpoint.id);
 
 // List endpoints
 let endpoints = client.endpoints().list(Default::default()).await?;
+# Ok(())
+# }
 ```
 
-### Managing Templates
 
-```rust
-use runpod_sdk::model::TemplateCreateInput;
-
-// Create a template
-let input = TemplateCreateInput {
-    name: "My Template".to_string(),
-    image_name: "runpod/pytorch:latest".to_string(),
-    is_serverless: Some(true),
-    ..Default::default()
-};
-
-let template = client.templates().create(input).await?;
-```
-
-### Managing Network Volumes
-
-```rust
-use runpod_sdk::model::NetworkVolumeCreateInput;
-
-// Create a network volume
-let input = NetworkVolumeCreateInput {
-    name: "My Volume".to_string(),
-    size: 50,
-    data_center_id: "EU-RO-1".to_string(),
-};
-
-let volume = client.volumes().create(input).await?;
-```
-
-### Billing Information
-
-```rust
-use runpod_sdk::model::{PodBillingQuery, BucketSize};
-
-// Get pod billing history
-let query = PodBillingQuery {
-    bucket_size: Some(BucketSize::Day),
-    start_time: Some("2023-01-01T00:00:00Z".to_string()),
-    end_time: Some("2023-01-31T23:59:59Z".to_string()),
-    ..Default::default()
-};
-
-let records = client.billing().pods(query).await?;
-```
 
 ### Configuration with Builder
 
 ```rust
-use runpod_sdk::Config;
+# use runpod_sdk::{Result, RunpodClient, RunpodConfig};
+# use std::time::Duration;
+# async fn example() -> Result<()> {
 
-let config = Config::builder()
-    .api_key("your-api-key")
-    .base_url("https://rest.runpod.io/v1")  // Optional, uses default if not set
-    .timeout_secs(60)                        // Optional, default is 30
+let config = RunpodConfig::builder()
+    .with_api_key("your-api-key")
+    .with_base_url("https://rest.runpod.io/v1")  // Optional, uses default if not set
+    .with_timeout(Duration::from_secs(60))       // Optional, default is 30 seconds
     .build()?;
 
 let client = RunpodClient::new(config)?;
+# Ok(())
+# }
 ```
 
-## API Services
+## Additional Features
 
-The SDK provides the following services:
+The SDK provides comprehensive support for all RunPod API operations including:
 
-- **Pods**: Create, list, get, update, delete, start, stop, reset, and restart pods
-- **Endpoints**: Create, list, get, update, and delete serverless endpoints
-- **Templates**: Create, list, get, update, and delete templates
-- **Network Volumes**: Create, list, get, update, and delete network volumes
-- **Container Registry Auth**: Create, list, get, and delete container registry authentication
-- **Billing**: Retrieve billing history for pods, endpoints, and network volumes
+- **Pods**: Complete lifecycle management (create, list, get, update, delete, start, stop, reset, restart)
+- **Serverless Endpoints**: Full endpoint management and scaling configuration
+- **Templates**: Template creation and management for reusable configurations  
+- **Network Volumes**: Storage volume provisioning and management
+- **Container Registry**: Authentication and registry management
+- **Billing**: Detailed usage and billing information retrieval
 
-## Error Handling
+For complete API documentation and examples, see the [full documentation on docs.rs](https://docs.rs/runpod-sdk).
 
-The SDK uses a custom `Result` type with `RunpodError`:
 
-```rust
-use runpod_sdk::{Result, RunpodError};
-
-match client.pods().list(Default::default()).await {
-    Ok(pods) => println!("Found {} pods", pods.len()),
-    Err(RunpodError::Http(e)) => eprintln!("HTTP error: {}", e),
-    Err(RunpodError::Api(e)) => eprintln!("API error: {}", e),
-    Err(e) => eprintln!("Other error: {}", e),
-}
-```
 
 ## Examples
 

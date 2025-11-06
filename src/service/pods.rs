@@ -9,19 +9,19 @@ pub struct PodsService {
 }
 
 impl PodsService {
-    /// Create a new pods service
+    /// Creates a new pods service
     pub(crate) fn new(client: RunpodClient) -> Self {
         Self { client }
     }
 
-    /// Create a new pod
+    /// Creates a new pod
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # use runpod_sdk::model::PodCreateInput;
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let input = PodCreateInput {
@@ -41,14 +41,14 @@ impl PodsService {
         Ok(pod)
     }
 
-    /// List pods
+    /// Lists pods
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # use runpod_sdk::model::ListPodsQuery;
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let query = ListPodsQuery {
@@ -67,14 +67,14 @@ impl PodsService {
         Ok(pods)
     }
 
-    /// Get a pod by ID
+    /// Gets a pod by ID
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # use runpod_sdk::model::GetPodQuery;
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let query = GetPodQuery {
@@ -94,14 +94,14 @@ impl PodsService {
         Ok(pod)
     }
 
-    /// Update a pod
+    /// Updates a pod
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # use runpod_sdk::model::PodUpdateInput;
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let input = PodUpdateInput {
@@ -121,13 +121,13 @@ impl PodsService {
         Ok(pod)
     }
 
-    /// Delete a pod
+    /// Deletes a pod
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// client.pods().delete("pod_id").await?;
@@ -145,9 +145,9 @@ impl PodsService {
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// client.pods().start("pod_id").await?;
@@ -161,13 +161,13 @@ impl PodsService {
         Ok(())
     }
 
-    /// Stop a pod
+    /// Stops a pod
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// client.pods().stop("pod_id").await?;
@@ -185,9 +185,9 @@ impl PodsService {
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// client.pods().reset("pod_id").await?;
@@ -201,13 +201,13 @@ impl PodsService {
         Ok(())
     }
 
-    /// Restart a pod
+    /// Restarts a pod
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// client.pods().restart("pod_id").await?;

@@ -1,87 +1,126 @@
-use reqwest::{Client, RequestBuilder};
-use std::time::Duration;
+use std::fmt;
+use std::sync::Arc;
 
-use super::config::Config;
+use reqwest::{Client, RequestBuilder};
+
+use super::config::RunpodConfig;
 use crate::Result;
 use crate::service::{
-    billing::BillingService, registry::RegistryService,
-    endpoints::EndpointsService, pods::PodsService, templates::TemplatesService,
-    volumes::VolumesService,
+    BillingService, EndpointsService, PodsService, RegistryService, TemplatesService,
+    VolumesService,
 };
 
-/// Main Runpod API client
-#[derive(Debug, Clone)]
-pub struct RunpodClient {
-    config: Config,
+/// Inner client state that is shared via Arc for cheap cloning
+#[derive(Debug)]
+struct RunpodClientInner {
+    config: RunpodConfig,
     client: Client,
 }
 
+/// Main Runpod API client
+///
+/// This client is cheap to clone as it uses Arc internally for shared state.
+#[derive(Clone)]
+pub struct RunpodClient {
+    inner: Arc<RunpodClientInner>,
+}
+
+impl fmt::Debug for RunpodClient {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("RunpodClient")
+            .field("base_url", &self.inner.config.base_url())
+            .field("timeout", &self.inner.config.timeout())
+            .finish()
+    }
+}
+
 impl RunpodClient {
-    /// Create a new Runpod API client
+    /// Creates a new Runpod API client
     #[cfg_attr(feature = "tracing", tracing::instrument(skip(config)))]
-    pub fn new(config: Config) -> Result<Self> {
-        let client = Client::builder()
-            .timeout(Duration::from_secs(config.timeout_secs()))
-            .build()?;
+    pub fn new(config: RunpodConfig) -> Result<Self> {
+        let client = Client::builder().timeout(config.timeout()).build()?;
 
         #[cfg(feature = "tracing")]
-        tracing::debug!(base_url = %config.base_url(), timeout_secs = config.timeout_secs(), "Created Runpod client");
+        tracing::debug!(base_url = %config.base_url(), timeout = ?config.timeout(), "Created Runpod client");
 
-        Ok(Self { config, client })
+        let inner = Arc::new(RunpodClientInner { config, client });
+        Ok(Self { inner })
     }
 
-    /// Get the pods service
+    /// Gets the pods service
     pub fn pods(&self) -> PodsService {
         PodsService::new(self.clone())
     }
 
-    /// Get the endpoints service
+    /// Gets the endpoints service
     pub fn endpoints(&self) -> EndpointsService {
         EndpointsService::new(self.clone())
     }
 
-    /// Get the templates service
+    /// Gets the templates service
     pub fn templates(&self) -> TemplatesService {
         TemplatesService::new(self.clone())
     }
 
-    /// Get the volumes service
+    /// Gets the volumes service
     pub fn volumes(&self) -> VolumesService {
         VolumesService::new(self.clone())
     }
 
-    /// Get the container registry auth service
+    /// Gets the container registry auth service
     pub fn container_registry_auth(&self) -> RegistryService {
         RegistryService::new(self.clone())
     }
 
-    /// Get the billing service
+    /// Gets the billing service
     pub fn billing(&self) -> BillingService {
         BillingService::new(self.clone())
     }
 
-    /// Create a GET request
+    /// Creates a GET request
     pub(crate) fn get(&self, path: &str) -> RequestBuilder {
-        let url = format!("{}{}", self.config.base_url(), path);
-        self.client.get(&url).bearer_auth(self.config.api_key())
+        let url = format!("{}{}", self.inner.config.base_url(), path);
+        self.inner
+            .client
+            .get(&url)
+            .bearer_auth(self.inner.config.api_key())
     }
 
-    /// Create a POST request
+    /// Creates a POST request
     pub(crate) fn post(&self, path: &str) -> RequestBuilder {
-        let url = format!("{}{}", self.config.base_url(), path);
-        self.client.post(&url).bearer_auth(self.config.api_key())
+        let url = format!("{}{}", self.inner.config.base_url(), path);
+        self.inner
+            .client
+            .post(&url)
+            .bearer_auth(self.inner.config.api_key())
     }
 
-    /// Create a PATCH request
+    /// Creates a PUT request
+    #[allow(dead_code)]
+    pub(crate) fn put(&self, path: &str) -> RequestBuilder {
+        let url = format!("{}{}", self.inner.config.base_url(), path);
+        self.inner
+            .client
+            .put(&url)
+            .bearer_auth(self.inner.config.api_key())
+    }
+
+    /// Creates a PATCH request
     pub(crate) fn patch(&self, path: &str) -> RequestBuilder {
-        let url = format!("{}{}", self.config.base_url(), path);
-        self.client.patch(&url).bearer_auth(self.config.api_key())
+        let url = format!("{}{}", self.inner.config.base_url(), path);
+        self.inner
+            .client
+            .patch(&url)
+            .bearer_auth(self.inner.config.api_key())
     }
 
-    /// Create a DELETE request
+    /// Creates a DELETE request
     pub(crate) fn delete(&self, path: &str) -> RequestBuilder {
-        let url = format!("{}{}", self.config.base_url(), path);
-        self.client.delete(&url).bearer_auth(self.config.api_key())
+        let url = format!("{}{}", self.inner.config.base_url(), path);
+        self.inner
+            .client
+            .delete(&url)
+            .bearer_auth(self.inner.config.api_key())
     }
 }
 
@@ -89,11 +128,14 @@ impl RunpodClient {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_client_creation() {
-        let config = Config::builder().api_key("test_key").build().unwrap();
+    type TestResult = std::result::Result<(), Box<dyn std::error::Error>>;
 
-        let client = RunpodClient::new(config);
-        assert!(client.is_ok());
+    #[test]
+    fn test_client_creation() -> TestResult {
+        let config = RunpodConfig::builder().with_api_key("test_key").build()?;
+
+        let client = RunpodClient::new(config)?;
+        assert!(client.inner.config.api_key() == "test_key");
+        Ok(())
     }
 }

@@ -1,10 +1,13 @@
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 
-use super::{common::*, pod::Pod, template::Template};
+use super::common::*;
+use super::pod::Pod;
+use super::template::Template;
 
 /// Scaler type for endpoints
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display, EnumString)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Display, EnumString)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
 pub enum ScalerType {

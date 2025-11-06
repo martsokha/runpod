@@ -1,5 +1,5 @@
-use crate::client::RunpodClient;
 use crate::Result;
+use crate::client::RunpodClient;
 use crate::model::{
     ContainerRegistryAuth, ContainerRegistryAuthCreateInput, ContainerRegistryAuths,
 };
@@ -11,19 +11,19 @@ pub struct RegistryService {
 }
 
 impl RegistryService {
-    /// Create a new container registry auth service
+    /// Creates a new container registry auth service
     pub(crate) fn new(client: RunpodClient) -> Self {
         Self { client }
     }
 
-    /// Create a new container registry authentication
+    /// Creates a new container registry authentication
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # use runpod_sdk::model::ContainerRegistryAuthCreateInput;
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let input = ContainerRegistryAuthCreateInput {
@@ -51,13 +51,13 @@ impl RegistryService {
         Ok(auth)
     }
 
-    /// List container registry authentications
+    /// Lists container registry authentications
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let auths = client.container_registry_auth().list().await?;
@@ -71,13 +71,13 @@ impl RegistryService {
         Ok(auths)
     }
 
-    /// Get a container registry authentication by ID
+    /// Gets a container registry authentication by ID
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let auth = client.container_registry_auth().get("auth_id").await?;
@@ -92,13 +92,13 @@ impl RegistryService {
         Ok(auth)
     }
 
-    /// Delete a container registry authentication
+    /// Deletes a container registry authentication
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// client.container_registry_auth().delete("auth_id").await?;

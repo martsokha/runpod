@@ -1,5 +1,5 @@
-use crate::client::RunpodClient;
 use crate::Result;
+use crate::client::RunpodClient;
 use crate::model::{
     NetworkVolume, NetworkVolumeCreateInput, NetworkVolumeUpdateInput, NetworkVolumes,
 };
@@ -11,19 +11,19 @@ pub struct VolumesService {
 }
 
 impl VolumesService {
-    /// Create a new network volumes service
+    /// Creates a new network volumes service
     pub(crate) fn new(client: RunpodClient) -> Self {
         Self { client }
     }
 
-    /// Create a new network volume
+    /// Creates a new network volume
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # use runpod_sdk::model::NetworkVolumeCreateInput;
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let input = NetworkVolumeCreateInput {
@@ -48,13 +48,13 @@ impl VolumesService {
         Ok(volume)
     }
 
-    /// List network volumes
+    /// Lists network volumes
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let volumes = client.volumes().list().await?;
@@ -68,13 +68,13 @@ impl VolumesService {
         Ok(volumes)
     }
 
-    /// Get a network volume by ID
+    /// Gets a network volume by ID
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let volume = client.volumes().get("volume_id").await?;
@@ -89,14 +89,14 @@ impl VolumesService {
         Ok(volume)
     }
 
-    /// Update a network volume
+    /// Updates a network volume
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # use runpod_sdk::model::NetworkVolumeUpdateInput;
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// let input = NetworkVolumeUpdateInput {
@@ -120,13 +120,13 @@ impl VolumesService {
         Ok(volume)
     }
 
-    /// Delete a network volume
+    /// Deletes a network volume
     ///
     /// # Example
     /// ```no_run
-    /// # use runpod_sdk::client::{Config, RunpodClient};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
     /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-    /// let config = Config::builder().api_key("your-api-key").build()?;
+    /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
     /// client.volumes().delete("volume_id").await?;
