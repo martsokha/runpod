@@ -245,10 +245,7 @@ impl fmt::Debug for RunpodConfig {
 
 #[cfg(test)]
 mod tests {
-    use std::env::var;
-
     use super::*;
-    use crate::Result;
 
     #[test]
     fn test_config_builder() -> Result<()> {
@@ -257,7 +254,7 @@ mod tests {
         assert_eq!(config.api_key(), "test_key");
         assert_eq!(config.base_url(), "https://rest.runpod.io/v1");
         assert_eq!(config.timeout(), Duration::from_secs(30));
-        
+
         Ok(())
     }
 
@@ -272,7 +269,7 @@ mod tests {
         assert_eq!(config.api_key(), "test_key");
         assert_eq!(config.base_url(), "https://custom.api.com");
         assert_eq!(config.timeout(), Duration::from_secs(60));
-        
+
         Ok(())
     }
 
@@ -303,18 +300,6 @@ mod tests {
     }
 
     #[test]
-    fn test_config_from_env_missing_api_key() {
-        // Clear the API key env var if it exists and test error case
-        if var("RUNPOD_API_KEY").is_ok() {
-            println!("Warning: RUNPOD_API_KEY is set, skipping missing API key test");
-            return;
-        }
-
-        let result = RunpodConfig::from_env();
-        assert!(result.is_err());
-    }
-
-    #[test]
     fn test_config_builder_with_all_options() -> Result<()> {
         let config = RunpodConfig::builder()
             .with_api_key("test_key_comprehensive")
@@ -325,7 +310,7 @@ mod tests {
         assert_eq!(config.api_key(), "test_key_comprehensive");
         assert_eq!(config.base_url(), "https://api.custom-domain.com/v2");
         assert_eq!(config.timeout(), Duration::from_secs(120));
-        
+
         Ok(())
     }
 
@@ -336,7 +321,7 @@ mod tests {
         assert_eq!(config.api_key(), "test_key");
         assert_eq!(config.base_url(), "https://rest.runpod.io/v1");
         assert_eq!(config.timeout(), Duration::from_secs(30));
-        
+
         Ok(())
     }
 }

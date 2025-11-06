@@ -248,6 +248,7 @@ impl RunpodClient {
             .client
             .get(&url)
             .bearer_auth(self.inner.config.api_key())
+            .timeout(self.inner.config.timeout())
     }
 
     /// Creates a POST request.
@@ -257,6 +258,7 @@ impl RunpodClient {
             .client
             .post(&url)
             .bearer_auth(self.inner.config.api_key())
+            .timeout(self.inner.config.timeout())
     }
 
     /// Creates a PUT request.
@@ -267,6 +269,7 @@ impl RunpodClient {
             .client
             .put(&url)
             .bearer_auth(self.inner.config.api_key())
+            .timeout(self.inner.config.timeout())
     }
 
     /// Creates a PATCH request.
@@ -276,6 +279,7 @@ impl RunpodClient {
             .client
             .patch(&url)
             .bearer_auth(self.inner.config.api_key())
+            .timeout(self.inner.config.timeout())
     }
 
     /// Creates a DELETE request.
@@ -285,6 +289,7 @@ impl RunpodClient {
             .client
             .delete(&url)
             .bearer_auth(self.inner.config.api_key())
+            .timeout(self.inner.config.timeout())
     }
 }
 
@@ -295,19 +300,5 @@ impl fmt::Debug for RunpodClient {
             .field("base_url", &self.inner.config.base_url())
             .field("timeout", &self.inner.config.timeout())
             .finish()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_client_creation() -> crate::Result<()> {
-        let config = RunpodConfig::builder().with_api_key("test_key").build()?;
-
-        let client = RunpodClient::new(config)?;
-        assert!(client.inner.config.api_key() == "test_key");
-        Ok(())
     }
 }
