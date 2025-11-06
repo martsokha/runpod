@@ -14,12 +14,7 @@ endpoints, templates, network volumes, and more.
 
 ## Features
 
-- **Pod Management**: Complete lifecycle operations (create, list, update,
-  delete, start, stop, etc.)
-- **Serverless Endpoints**: Full endpoint management with auto-scaling
-  configuration
-- **Template Management**: Reusable pod templates with custom configurations
-- **Network Volumes**: Persistent storage volumes across pods
+- **Serverless Endpoints**: Full endpoint management with configuration
 - **Type Safety**: Strongly typed models with comprehensive validation
 - **Async/Await**: Built on modern async Rust with `tokio` and `reqwest`
 
