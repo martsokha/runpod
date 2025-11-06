@@ -1,26 +1,31 @@
+use std::future::Future;
+
 use crate::Result;
 use crate::client::RunpodClient;
 use crate::model::{GetPodQuery, ListPodsQuery, Pod, PodCreateInput, PodUpdateInput, Pods};
 
-/// Service for managing pods.
-#[derive(Debug, Clone)]
-pub struct PodsService {
-    client: RunpodClient,
-}
-
-impl PodsService {
-    /// Creates a new pods service.
-    pub(crate) fn new(client: RunpodClient) -> Self {
-        Self { client }
-    }
-
+/// Trait for managing pods.
+///
+/// Provides methods for creating, listing, retrieving, updating, and controlling pods.
+/// This trait is implemented on the [`RunpodClient`](crate::client::RunpodClient).
+pub trait PodsService {
     /// Creates a new pod.
     ///
+    /// # Arguments
+    ///
+    /// * `input` - Configuration for the new pod
+    ///
+    /// # Returns
+    ///
+    /// Returns the created pod information.
+    ///
     /// # Example
+    ///
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::PodCreateInput;
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use runpod_sdk::service::PodsService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
@@ -30,24 +35,30 @@ impl PodsService {
     ///     ..Default::default()
     /// };
     ///
-    /// let pod = client.pods().create(input).await?;
+    /// let pod = client.create_pod(input).await?;
     /// println!("Created pod: {}", pod.id);
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn create(&self, input: PodCreateInput) -> Result<Pod> {
-        let response = self.client.post("/pods").json(&input).send().await?;
-        let pod = response.json().await?;
-        Ok(pod)
-    }
+    fn create_pod(&self, input: PodCreateInput) -> impl Future<Output = Result<Pod>>;
 
-    /// Lists pods.
+    /// Lists pods with optional filtering.
+    ///
+    /// # Arguments
+    ///
+    /// * `query` - Query parameters for filtering and pagination
+    ///
+    /// # Returns
+    ///
+    /// Returns a vector of pods matching the query criteria.
     ///
     /// # Example
+    ///
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::ListPodsQuery;
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use runpod_sdk::service::PodsService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
@@ -56,24 +67,31 @@ impl PodsService {
     ///     ..Default::default()
     /// };
     ///
-    /// let pods = client.pods().list(query).await?;
+    /// let pods = client.list_pods(query).await?;
     /// println!("Found {} pods", pods.len());
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn list(&self, query: ListPodsQuery) -> Result<Pods> {
-        let response = self.client.get("/pods").query(&query).send().await?;
-        let pods = response.json().await?;
-        Ok(pods)
-    }
+    fn list_pods(&self, query: ListPodsQuery) -> impl Future<Output = Result<Pods>>;
 
-    /// Gets a pod by ID.
+    /// Gets a specific pod by ID.
+    ///
+    /// # Arguments
+    ///
+    /// * `pod_id` - The unique identifier of the pod
+    /// * `query` - Query parameters for including additional information
+    ///
+    /// # Returns
+    ///
+    /// Returns the pod information.
     ///
     /// # Example
+    ///
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::GetPodQuery;
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use runpod_sdk::service::PodsService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
@@ -82,25 +100,31 @@ impl PodsService {
     ///     ..Default::default()
     /// };
     ///
-    /// let pod = client.pods().get("pod_id", query).await?;
+    /// let pod = client.get_pod("pod_id", query).await?;
     /// println!("Pod: {:?}", pod);
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn get(&self, pod_id: &str, query: GetPodQuery) -> Result<Pod> {
-        let path = format!("/pods/{}", pod_id);
-        let response = self.client.get(&path).query(&query).send().await?;
-        let pod = response.json().await?;
-        Ok(pod)
-    }
+    fn get_pod(&self, pod_id: &str, query: GetPodQuery) -> impl Future<Output = Result<Pod>>;
 
-    /// Updates a pod.
+    /// Updates an existing pod.
+    ///
+    /// # Arguments
+    ///
+    /// * `pod_id` - The unique identifier of the pod to update
+    /// * `input` - Update parameters for the pod
+    ///
+    /// # Returns
+    ///
+    /// Returns the updated pod information.
     ///
     /// # Example
+    ///
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
     /// # use runpod_sdk::model::PodUpdateInput;
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use runpod_sdk::service::PodsService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
@@ -109,115 +133,182 @@ impl PodsService {
     ///     ..Default::default()
     /// };
     ///
-    /// let pod = client.pods().update("pod_id", input).await?;
+    /// let pod = client.update_pod("pod_id", input).await?;
     /// println!("Updated pod: {}", pod.id);
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn update(&self, pod_id: &str, input: PodUpdateInput) -> Result<Pod> {
-        let path = format!("/pods/{}", pod_id);
-        let response = self.client.patch(&path).json(&input).send().await?;
-        let pod = response.json().await?;
-        Ok(pod)
-    }
+    fn update_pod(&self, pod_id: &str, input: PodUpdateInput) -> impl Future<Output = Result<Pod>>;
 
     /// Deletes a pod.
     ///
+    /// # Arguments
+    ///
+    /// * `pod_id` - The unique identifier of the pod to delete
+    ///
     /// # Example
+    ///
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
+    /// # use runpod_sdk::service::PodsService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
-    /// client.pods().delete("pod_id").await?;
+    /// client.delete_pod("pod_id").await?;
     /// println!("Pod deleted");
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn delete(&self, pod_id: &str) -> Result<()> {
-        let path = format!("/pods/{}", pod_id);
-        self.client.delete(&path).send().await?;
-        Ok(())
-    }
+    fn delete_pod(&self, pod_id: &str) -> impl Future<Output = Result<()>>;
 
-    /// Start or resume a pod.
+    /// Starts or resumes a pod.
+    ///
+    /// # Arguments
+    ///
+    /// * `pod_id` - The unique identifier of the pod to start
     ///
     /// # Example
+    ///
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
+    /// # use runpod_sdk::service::PodsService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
-    /// client.pods().start("pod_id").await?;
+    /// client.start_pod("pod_id").await?;
     /// println!("Pod started");
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn start(&self, pod_id: &str) -> Result<()> {
-        let path = format!("/pods/{}/start", pod_id);
-        self.client.post(&path).send().await?;
-        Ok(())
-    }
+    fn start_pod(&self, pod_id: &str) -> impl Future<Output = Result<()>>;
 
     /// Stops a pod.
     ///
+    /// # Arguments
+    ///
+    /// * `pod_id` - The unique identifier of the pod to stop
+    ///
     /// # Example
+    ///
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
+    /// # use runpod_sdk::service::PodsService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
-    /// client.pods().stop("pod_id").await?;
+    /// client.stop_pod("pod_id").await?;
     /// println!("Pod stopped");
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn stop(&self, pod_id: &str) -> Result<()> {
-        let path = format!("/pods/{}/stop", pod_id);
-        self.client.post(&path).send().await?;
-        Ok(())
-    }
+    fn stop_pod(&self, pod_id: &str) -> impl Future<Output = Result<()>>;
 
-    /// Reset a pod.
+    /// Resets a pod.
+    ///
+    /// This operation will restart the pod with a fresh filesystem state.
+    ///
+    /// # Arguments
+    ///
+    /// * `pod_id` - The unique identifier of the pod to reset
     ///
     /// # Example
+    ///
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
+    /// # use runpod_sdk::service::PodsService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
-    /// client.pods().reset("pod_id").await?;
+    /// client.reset_pod("pod_id").await?;
     /// println!("Pod reset");
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn reset(&self, pod_id: &str) -> Result<()> {
-        let path = format!("/pods/{}/reset", pod_id);
-        self.client.post(&path).send().await?;
-        Ok(())
-    }
+    fn reset_pod(&self, pod_id: &str) -> impl Future<Output = Result<()>>;
 
     /// Restarts a pod.
     ///
+    /// This operation will stop and then start the pod.
+    ///
+    /// # Arguments
+    ///
+    /// * `pod_id` - The unique identifier of the pod to restart
+    ///
     /// # Example
+    ///
     /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, RunpodConfig};
-    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
+    /// # use runpod_sdk::service::PodsService;
+    /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
     ///
-    /// client.pods().restart("pod_id").await?;
+    /// client.restart_pod("pod_id").await?;
     /// println!("Pod restarted");
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn restart(&self, pod_id: &str) -> Result<()> {
+    fn restart_pod(&self, pod_id: &str) -> impl Future<Output = Result<()>>;
+}
+
+impl PodsService for RunpodClient {
+    async fn create_pod(&self, input: PodCreateInput) -> Result<Pod> {
+        let response = self.post("/pods").json(&input).send().await?;
+        let pod = response.json().await?;
+        Ok(pod)
+    }
+
+    async fn list_pods(&self, query: ListPodsQuery) -> Result<Pods> {
+        let response = self.get("/pods").query(&query).send().await?;
+        let pods = response.json().await?;
+        Ok(pods)
+    }
+
+    async fn get_pod(&self, pod_id: &str, query: GetPodQuery) -> Result<Pod> {
+        let path = format!("/pods/{}", pod_id);
+        let response = self.get(&path).query(&query).send().await?;
+        let pod = response.json().await?;
+        Ok(pod)
+    }
+
+    async fn update_pod(&self, pod_id: &str, input: PodUpdateInput) -> Result<Pod> {
+        let path = format!("/pods/{}", pod_id);
+        let response = self.patch(&path).json(&input).send().await?;
+        let pod = response.json().await?;
+        Ok(pod)
+    }
+
+    async fn delete_pod(&self, pod_id: &str) -> Result<()> {
+        let path = format!("/pods/{}", pod_id);
+        self.delete(&path).send().await?;
+        Ok(())
+    }
+
+    async fn start_pod(&self, pod_id: &str) -> Result<()> {
+        let path = format!("/pods/{}/start", pod_id);
+        self.post(&path).send().await?;
+        Ok(())
+    }
+
+    async fn stop_pod(&self, pod_id: &str) -> Result<()> {
+        let path = format!("/pods/{}/stop", pod_id);
+        self.post(&path).send().await?;
+        Ok(())
+    }
+
+    async fn reset_pod(&self, pod_id: &str) -> Result<()> {
+        let path = format!("/pods/{}/reset", pod_id);
+        self.post(&path).send().await?;
+        Ok(())
+    }
+
+    async fn restart_pod(&self, pod_id: &str) -> Result<()> {
         let path = format!("/pods/{}/restart", pod_id);
-        self.client.post(&path).send().await?;
+        self.post(&path).send().await?;
         Ok(())
     }
 }

@@ -1,10 +1,10 @@
 use runpod_sdk::model::ListPodsQuery;
-use runpod_sdk::{Result, RunpodClient, RunpodConfig};
+use runpod_sdk::service::{EndpointsService, PodsService, TemplatesService};
+use runpod_sdk::{Result, RunpodClient};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let config = RunpodConfig::from_env()?;
-    let client = RunpodClient::new(config)?;
+    let client = RunpodClient::from_env()?;
 
     // List all pods
     println!("Listing pods...");
@@ -12,7 +12,7 @@ async fn main() -> Result<()> {
         include_machine: Some(true),
         ..Default::default()
     };
-    let pods = client.pods().list(query).await?;
+    let pods = client.list_pods(query).await?;
     println!("Found {} pods", pods.len());
 
     for pod in &pods {
@@ -25,7 +25,7 @@ async fn main() -> Result<()> {
 
     // List endpoints
     println!("\nListing endpoints...");
-    let endpoints = client.endpoints().list(Default::default()).await?;
+    let endpoints = client.list_endpoints(Default::default()).await?;
     println!("Found {} endpoints", endpoints.len());
 
     for endpoint in &endpoints {
@@ -38,7 +38,7 @@ async fn main() -> Result<()> {
 
     // List templates
     println!("\nListing templates...");
-    let templates = client.templates().list(Default::default()).await?;
+    let templates = client.list_templates(Default::default()).await?;
     println!("Found {} templates", templates.len());
 
     Ok(())
