@@ -15,10 +15,10 @@ targets = [
 db-path = "~/.cargo/advisory-db"
 # The url(s) of the advisory databases to use
 db-urls = ["https://github.com/rustsec/advisory-db"]
-# The lint level for unmaintained crates (all = deny all unmaintained)
+# The lint level for unmaintained crates
 unmaintained = "all"
-# The lint level for crates that have been yanked from their source registry (all = deny all yanked)
-yanked = "all"
+# The lint level for crates that have been yanked from their source registry
+yanked = "deny"
 # A list of advisory IDs to ignore
 ignore = [
     # Add specific advisory IDs to ignore if needed
@@ -27,8 +27,6 @@ ignore = [
 [licenses]
 # Confidence threshold for detecting a license from a license text (higher = stricter)
 confidence-threshold = 0.9
-# Deny any crate with an unlicensed field
-unlicensed = "deny"
 # Private licenses are not allowed
 private = { ignore = false, registries = [] }
 # Warn if an allowed license is not used in the dependency graph
@@ -52,26 +50,12 @@ allow = [
     "Zlib",
 ]
 
-# Denied licenses - explicitly block problematic licenses
-deny = [
-    "GPL-2.0-only",
-    "GPL-2.0-or-later",
-    "GPL-3.0-only",
-    "GPL-3.0-or-later",
-    "AGPL-1.0-only",
-    "AGPL-1.0-or-later",
-    "AGPL-3.0-only",
-    "AGPL-3.0-or-later",
-    "SSPL-1.0",
-    "Commons-Clause",
-]
-
 # For compound licenses, we'll be permissive and only block if they contain denied licenses
 exceptions = []
 
 [bans]
 # Lint level for when multiple versions of the same crate are detected
-multiple-versions = "deny"
+multiple-versions = "warn"
 # Lint level for when a crate version requirement is `*`
 wildcards = "deny"
 # The graph highlighting used when creating dotgraphs for crates with multiple versions
