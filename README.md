@@ -44,7 +44,7 @@ async fn main() -> Result<()> {
         .with_api_key("your-api-key")
         .with_base_url("https://api.runpod.io/v1")
         .with_timeout(Duration::from_secs(60))
-        .build_client()?;
+        .build_v1()?;
 
     let pods = client.list_pods(ListPodsQuery::default()).await?;
     println!("Found {} pods", pods.len());

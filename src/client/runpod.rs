@@ -28,7 +28,7 @@ use crate::Result;
 ///
 /// # Services
 ///
-/// The client implements service traits that provide direct access to API methods:
+/// The client implements V1 API service traits that provide direct access to API methods:
 /// - [`PodsService`](crate::service::v1::PodsService) - Pod lifecycle management
 /// - [`EndpointsService`](crate::service::v1::EndpointsService) - Serverless endpoint operations
 /// - [`TemplatesService`](crate::service::v1::TemplatesService) - Template creation and management
@@ -67,7 +67,7 @@ use crate::Result;
 ///     .with_api_key("your-api-key")
 ///     .with_base_url("https://api.runpod.io/v1")
 ///     .with_timeout(Duration::from_secs(30))
-///     .build_client()?;
+///     .build_v1()?;
 ///
 /// // Use different services
 /// let pods = client.list_pods(Default::default()).await?;
@@ -79,17 +79,18 @@ use crate::Result;
 ///
 /// ## Multi-threaded usage
 ///
+/// The client is cheap to clone (uses `Arc` internally):
+///
 /// ```no_run
 /// use runpod_sdk::{RunpodClient, Result};
 /// use runpod_sdk::service::v1::PodsService;
-/// use std::sync::Arc;
 /// use tokio::task;
 ///
 /// # async fn example() -> Result<()> {
-/// let client = Arc::new(RunpodClient::from_env()?);
+/// let client = RunpodClient::from_env()?;
 ///
 /// let handles: Vec<_> = (0..3).map(|i| {
-///     let client = Arc::clone(&client);
+///     let client = client.clone();
 ///     task::spawn(async move {
 ///         let pods = client.list_pods(Default::default()).await?;
 ///         println!("Thread {}: Found {} pods", i, pods.len());

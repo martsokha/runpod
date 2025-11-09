@@ -2,27 +2,6 @@
 //!
 //! This module provides type-level API version markers that enable
 //! compile-time API version enforcement through phantom types.
-//!
-//! # Sealed Trait Pattern
-//!
-//! The `ApiVersion` trait is sealed, preventing external implementations.
-//! This ensures only library-defined version markers can be used.
-//!
-//! # Available Versions
-//!
-//! - [`V1`] - Version 1 of the RunPod API (current default)
-//!
-//! # Examples
-//!
-//! ```
-//! use runpod_sdk::{RunpodClient, V1};
-//!
-//! // Default V1
-//! # fn example() -> runpod_sdk::Result<()> {
-//! let client: RunpodClient = RunpodClient::from_env()?;
-//! # Ok(())
-//! # }
-//! ```
 
 mod sealed {
     /// Sealed trait to prevent external implementations of `ApiVersion`.
@@ -49,7 +28,7 @@ pub trait ApiVersion: sealed::Sealed + Send + Sync + 'static {}
 /// # Examples
 ///
 /// ```
-/// use runpod_sdk::{RunpodClient, V1};
+/// use runpod_sdk::{RunpodClient, version::V1};
 ///
 /// # fn example() -> runpod_sdk::Result<()> {
 /// // Explicitly use V1

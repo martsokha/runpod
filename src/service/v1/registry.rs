@@ -3,7 +3,8 @@ use std::future::Future;
 use crate::model::v1::{
     ContainerRegistryAuth, ContainerRegistryAuthCreateInput, ContainerRegistryAuths,
 };
-use crate::{Result, RunpodClient, V1};
+use crate::version::V1;
+use crate::{Result, RunpodClient};
 
 /// Trait for managing container registry authentication.
 ///

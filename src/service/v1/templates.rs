@@ -4,7 +4,8 @@ use crate::model::v1::{
     GetTemplateQuery, ListTemplatesQuery, Template, TemplateCreateInput, TemplateUpdateInput,
     Templates,
 };
-use crate::{Result, RunpodClient, V1};
+use crate::version::V1;
+use crate::{Result, RunpodClient};
 
 /// Trait for managing templates.
 ///

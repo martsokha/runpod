@@ -1,7 +1,8 @@
 use std::future::Future;
 
 use crate::model::v1::{GetPodQuery, ListPodsQuery, Pod, PodCreateInput, PodUpdateInput, Pods};
-use crate::{Result, RunpodClient, V1};
+use crate::version::V1;
+use crate::{Result, RunpodClient};
 
 /// Trait for managing pods (V1 API).
 ///

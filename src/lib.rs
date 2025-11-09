@@ -8,13 +8,10 @@ pub mod model;
 pub mod prelude;
 pub mod service;
 
-#[doc(hidden)]
-pub use client::ApiVersion;
-#[doc(hidden)]
-pub use client::V1;
-pub use client::{RunpodBuilder, RunpodClient, RunpodConfig};
+pub use client::{RunpodBuilder, RunpodClient, RunpodConfig, version};
 
-use crate::client::RunpodBuilderError;
+#[doc(hidden)]
+pub use crate::client::RunpodBuilderError;
 
 /// Error type for RunPod API operations.
 ///
@@ -40,6 +37,7 @@ use crate::client::RunpodBuilderError;
 /// # Ok(())
 /// # }
 /// ```
+#[non_exhaustive]
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     /// HTTP transport error from the underlying HTTP client.

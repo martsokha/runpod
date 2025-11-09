@@ -4,7 +4,8 @@ use crate::model::v1::{
     Endpoint, EndpointCreateInput, EndpointUpdateInput, Endpoints, GetEndpointQuery,
     ListEndpointsQuery,
 };
-use crate::{Result, RunpodClient, V1};
+use crate::version::V1;
+use crate::{Result, RunpodClient};
 
 /// Trait for managing serverless endpoints.
 ///

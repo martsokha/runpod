@@ -10,6 +10,7 @@ use derive_builder::Builder;
 
 use crate::Result;
 use crate::client::RunpodClient;
+use crate::version::ApiVersion;
 
 /// Configuration for the Runpod API client.
 ///
@@ -192,7 +193,33 @@ impl RunpodConfig {
         builder.build().map_err(Into::into)
     }
 
-    /// Creates a new RunPod client using this configuration.
+    /// Creates a new RunPod client with a specific API version.
+    ///
+    /// This is a lower-level method that allows specifying the API version type parameter.
+    /// For most use cases, use [`build_v1`](Self::build_v1) instead.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use runpod_sdk::RunpodConfig;
+    /// # use runpod_sdk::version::V1;
+    /// let config = RunpodConfig::builder()
+    ///     .with_api_key("your-api-key")
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let client = config.build_v::<V1>().unwrap();
+    /// ```
+    pub fn build_v<V>(self) -> Result<RunpodClient<V>>
+    where
+        V: ApiVersion,
+    {
+        RunpodClient::new(self)
+    }
+
+    /// Creates a new RunPod V1 API client using this configuration.
+    ///
+    /// This is the recommended method for creating a client. It defaults to the V1 API.
     ///
     /// # Examples
     ///
@@ -203,9 +230,9 @@ impl RunpodConfig {
     ///     .build()
     ///     .unwrap();
     ///
-    /// let client = config.build_client().unwrap();
+    /// let client = config.build_v1().unwrap();
     /// ```
-    pub fn build_client(self) -> Result<RunpodClient> {
+    pub fn build_v1(self) -> Result<RunpodClient> {
         RunpodClient::new(self)
     }
 
@@ -245,10 +272,11 @@ impl RunpodConfig {
 }
 
 impl RunpodBuilder {
-    /// Creates a RunPod client directly from the builder.
+    /// Creates a RunPod V1 API client directly from the builder.
     ///
     /// This is a convenience method that builds the configuration and
-    /// creates a client in one step.
+    /// creates a V1 client in one step. This is the recommended way to
+    /// create a client.
     ///
     /// # Examples
     ///
@@ -256,10 +284,33 @@ impl RunpodBuilder {
     /// # use runpod_sdk::RunpodConfig;
     /// let client = RunpodConfig::builder()
     ///     .with_api_key("your-api-key")
-    ///     .build_client()
+    ///     .build_v1()
     ///     .unwrap();
     /// ```
-    pub fn build_client(self) -> Result<RunpodClient> {
+    pub fn build_v1(self) -> Result<RunpodClient> {
+        let config = self.build()?;
+        RunpodClient::new(config)
+    }
+
+    /// Creates a RunPod client with a specific API version directly from the builder.
+    ///
+    /// This is a lower-level method that allows specifying the API version type parameter.
+    /// For most use cases, use [`build_v1`](Self::build_v1) instead.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use runpod_sdk::RunpodConfig;
+    /// # use runpod_sdk::version::V1;
+    /// let client = RunpodConfig::builder()
+    ///     .with_api_key("your-api-key")
+    ///     .build_v::<V1>()
+    ///     .unwrap();
+    /// ```
+    pub fn build_v<V>(self) -> Result<RunpodClient<V>>
+    where
+        V: ApiVersion,
+    {
         let config = self.build()?;
         RunpodClient::new(config)
     }
