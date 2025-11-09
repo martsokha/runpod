@@ -11,7 +11,7 @@ use super::common::*;
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::Pod;
+/// use runpod_sdk::model::v1::Pod;
 ///
 /// // Pod instances are typically obtained from API responses
 /// // when listing, creating, or retrieving pods
@@ -124,7 +124,7 @@ pub type Pods = Vec<Pod>;
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::{PodCreateInput, ComputeType, CloudType};
+/// use runpod_sdk::model::v1::{PodCreateInput, ComputeType, CloudType};
 ///
 /// let create_input = PodCreateInput {
 ///     name: Some("my-pod".to_string()),
@@ -272,7 +272,7 @@ pub struct PodCreateInput {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::PodUpdateInput;
+/// use runpod_sdk::model::v1::PodUpdateInput;
 ///
 /// let update_input = PodUpdateInput {
 ///     name: Some("updated-pod-name".to_string()),
@@ -335,7 +335,7 @@ pub struct PodUpdateInput {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::{ListPodsQuery, ComputeType, PodStatus};
+/// use runpod_sdk::model::v1::{ListPodsQuery, ComputeType, PodStatus};
 ///
 /// let query = ListPodsQuery {
 ///     compute_type: Some(ComputeType::Gpu),
@@ -406,7 +406,7 @@ pub struct ListPodsQuery {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::GetPodQuery;
+/// use runpod_sdk::model::v1::GetPodQuery;
 ///
 /// let query = GetPodQuery {
 ///     include_machine: Some(true),

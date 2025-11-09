@@ -1,10 +1,10 @@
 use std::future::Future;
 
-use crate::Result;
-use crate::client::RunpodClient;
-use crate::model::{
+use crate::model::v1::{
     ContainerRegistryAuth, ContainerRegistryAuthCreateInput, ContainerRegistryAuths,
 };
+use crate::version::V1;
+use crate::{Result, RunpodClient};
 
 /// Trait for managing container registry authentication.
 ///
@@ -25,8 +25,8 @@ pub trait RegistryService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::ContainerRegistryAuthCreateInput;
-    /// # use runpod_sdk::service::RegistryService;
+    /// # use runpod_sdk::model::v1::ContainerRegistryAuthCreateInput;
+    /// # use runpod_sdk::service::v1::RegistryService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -57,7 +57,7 @@ pub trait RegistryService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::service::RegistryService;
+    /// # use runpod_sdk::service::v1::RegistryService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -83,7 +83,7 @@ pub trait RegistryService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::service::RegistryService;
+    /// # use runpod_sdk::service::v1::RegistryService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -110,7 +110,7 @@ pub trait RegistryService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::service::RegistryService;
+    /// # use runpod_sdk::service::v1::RegistryService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -123,7 +123,7 @@ pub trait RegistryService {
     fn delete_registry_auth(&self, auth_id: &str) -> impl Future<Output = Result<()>>;
 }
 
-impl RegistryService for RunpodClient {
+impl RegistryService for RunpodClient<V1> {
     async fn create_registry_auth(
         &self,
         input: ContainerRegistryAuthCreateInput,

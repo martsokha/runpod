@@ -4,11 +4,14 @@
 
 mod client;
 pub mod model;
+#[doc(hidden)]
+pub mod prelude;
 pub mod service;
 
-pub use client::{RunpodBuilder, RunpodClient, RunpodConfig};
+pub use client::{RunpodBuilder, RunpodClient, RunpodConfig, version};
 
-use crate::client::RunpodBuilderError;
+#[doc(hidden)]
+pub use crate::client::RunpodBuilderError;
 
 /// Error type for RunPod API operations.
 ///
@@ -20,9 +23,10 @@ use crate::client::RunpodBuilderError;
 /// Handling different error types:
 ///
 /// ```no_run
-/// # use runpod_sdk::{Error, Result, RunpodClient, service::PodsService};
+/// # use runpod_sdk::{Error, Result, RunpodClient};
+/// # use runpod_sdk::service::v1::PodsService;
 /// # async fn example() -> Result<()> {
-/// let client = RunpodClient::from_env()?;
+/// let client: RunpodClient = RunpodClient::from_env()?;
 ///
 /// match client.list_pods(Default::default()).await {
 ///     Ok(pods) => println!("Found {} pods", pods.len()),
@@ -33,6 +37,7 @@ use crate::client::RunpodBuilderError;
 /// # Ok(())
 /// # }
 /// ```
+#[non_exhaustive]
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     /// HTTP transport error from the underlying HTTP client.

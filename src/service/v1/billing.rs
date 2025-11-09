@@ -1,10 +1,10 @@
 use std::future::Future;
 
-use crate::Result;
-use crate::client::RunpodClient;
-use crate::model::{
+use crate::model::v1::{
     BillingRecords, EndpointBillingQuery, NetworkVolumeBillingQuery, PodBillingQuery,
 };
+use crate::version::V1;
+use crate::{Result, RunpodClient};
 
 /// Trait for retrieving billing information and usage data.
 ///
@@ -57,8 +57,8 @@ pub trait BillingService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::{PodBillingQuery, BucketSize};
-    /// # use runpod_sdk::service::BillingService;
+    /// # use runpod_sdk::model::v1::{PodBillingQuery, BucketSize};
+    /// # use runpod_sdk::service::v1::BillingService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::from_env()?;
     /// let client = RunpodClient::new(config)?;
@@ -109,8 +109,8 @@ pub trait BillingService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::{EndpointBillingQuery, BucketSize, BillingGrouping};
-    /// # use runpod_sdk::service::BillingService;
+    /// # use runpod_sdk::model::v1::{EndpointBillingQuery, BucketSize, BillingGrouping};
+    /// # use runpod_sdk::service::v1::BillingService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::from_env()?;
     /// let client = RunpodClient::new(config)?;
@@ -162,8 +162,8 @@ pub trait BillingService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::{NetworkVolumeBillingQuery, BucketSize, BillingGrouping};
-    /// # use runpod_sdk::service::BillingService;
+    /// # use runpod_sdk::model::v1::{NetworkVolumeBillingQuery, BucketSize, BillingGrouping};
+    /// # use runpod_sdk::service::v1::BillingService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::from_env()?;
     /// let client = RunpodClient::new(config)?;
@@ -186,7 +186,7 @@ pub trait BillingService {
     ) -> impl Future<Output = Result<BillingRecords>>;
 }
 
-impl BillingService for RunpodClient {
+impl BillingService for RunpodClient<V1> {
     async fn get_pod_billing(&self, query: PodBillingQuery) -> Result<BillingRecords> {
         let response = self.get("/billing/pods").query(&query).send().await?;
         let records = response.json().await?;

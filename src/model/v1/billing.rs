@@ -131,7 +131,7 @@ pub type BillingRecords = Vec<BillingRecord>;
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::{PodBillingQuery, BucketSize};
+/// use runpod_sdk::model::v1::{PodBillingQuery, BucketSize};
 ///
 /// // Query for a specific Pod's hourly billing
 /// let query = PodBillingQuery {
@@ -194,7 +194,7 @@ pub struct PodBillingQuery {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::{EndpointBillingQuery, BucketSize, BillingGrouping};
+/// use runpod_sdk::model::v1::{EndpointBillingQuery, BucketSize, BillingGrouping};
 ///
 /// // Query billing for endpoints in specific data centers
 /// let query = EndpointBillingQuery {
@@ -271,7 +271,7 @@ pub struct EndpointBillingQuery {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::{NetworkVolumeBillingQuery, BucketSize};
+/// use runpod_sdk::model::v1::{NetworkVolumeBillingQuery, BucketSize};
 ///
 /// // Query monthly billing for a specific Network Volume
 /// let query = NetworkVolumeBillingQuery {

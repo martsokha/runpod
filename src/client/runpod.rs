@@ -1,9 +1,16 @@
+//! RunPod API client implementation.
+//!
+//! This module contains the main [`RunpodClient`] struct and its implementation,
+//! providing the core HTTP client functionality for interacting with the RunPod API.
+
 use std::fmt;
+use std::marker::PhantomData;
 use std::sync::Arc;
 
 use reqwest::{Client, RequestBuilder};
 
 use super::config::RunpodConfig;
+use super::version::{ApiVersion, V1};
 use crate::Result;
 
 /// Main RunPod API client for interacting with all RunPod services.
@@ -21,23 +28,25 @@ use crate::Result;
 ///
 /// # Services
 ///
-/// The client implements service traits that provide direct access to API methods:
-/// - [`PodsService`](crate::service::PodsService) - Pod lifecycle management
-/// - [`EndpointsService`](crate::service::EndpointsService) - Serverless endpoint operations
-/// - [`TemplatesService`](crate::service::TemplatesService) - Template creation and management
-/// - [`VolumesService`](crate::service::VolumesService) - Network volume operations
-/// - [`RegistryService`](crate::service::RegistryService) - Registry authentication
-/// - [`BillingService`](crate::service::BillingService) - Usage and billing information
+/// The client implements V1 API service traits that provide direct access to API methods:
+/// - [`PodsService`](crate::service::v1::PodsService) - Pod lifecycle management
+/// - [`EndpointsService`](crate::service::v1::EndpointsService) - Serverless endpoint operations
+/// - [`TemplatesService`](crate::service::v1::TemplatesService) - Template creation and management
+/// - [`VolumesService`](crate::service::v1::VolumesService) - Network volume operations
+/// - [`RegistryService`](crate::service::v1::RegistryService) - Registry authentication
+/// - [`BillingService`](crate::service::v1::BillingService) - Usage and billing information
 ///
 /// # Examples
 ///
 /// ## Basic usage with environment configuration
 ///
 /// ```no_run
-/// use runpod_sdk::{RunpodClient, Result, model::ListPodsQuery, service::PodsService};
+/// use runpod_sdk::{RunpodClient, Result};
+/// use runpod_sdk::model::v1::ListPodsQuery;
+/// use runpod_sdk::service::v1::PodsService;
 ///
 /// # async fn example() -> Result<()> {
-/// let client = RunpodClient::from_env()?;
+/// let client: RunpodClient = RunpodClient::from_env()?;
 ///
 /// // List all pods
 /// let pods = client.list_pods(ListPodsQuery::default()).await?;
@@ -50,7 +59,7 @@ use crate::Result;
 ///
 /// ```no_run
 /// use runpod_sdk::{RunpodConfig, RunpodClient, Result};
-/// use runpod_sdk::service::{PodsService, EndpointsService, TemplatesService};
+/// use runpod_sdk::service::v1::{PodsService, EndpointsService, TemplatesService};
 /// use std::time::Duration;
 ///
 /// # async fn example() -> Result<()> {
@@ -58,7 +67,7 @@ use crate::Result;
 ///     .with_api_key("your-api-key")
 ///     .with_base_url("https://api.runpod.io/v1")
 ///     .with_timeout(Duration::from_secs(30))
-///     .build_client()?;
+///     .build_v1()?;
 ///
 /// // Use different services
 /// let pods = client.list_pods(Default::default()).await?;
@@ -70,16 +79,18 @@ use crate::Result;
 ///
 /// ## Multi-threaded usage
 ///
+/// The client is cheap to clone (uses `Arc` internally):
+///
 /// ```no_run
-/// use runpod_sdk::{RunpodClient, Result, service::PodsService};
-/// use std::sync::Arc;
+/// use runpod_sdk::{RunpodClient, Result};
+/// use runpod_sdk::service::v1::PodsService;
 /// use tokio::task;
 ///
 /// # async fn example() -> Result<()> {
-/// let client = Arc::new(RunpodClient::from_env()?);
+/// let client = RunpodClient::from_env()?;
 ///
 /// let handles: Vec<_> = (0..3).map(|i| {
-///     let client = Arc::clone(&client);
+///     let client = client.clone();
 ///     task::spawn(async move {
 ///         let pods = client.list_pods(Default::default()).await?;
 ///         println!("Thread {}: Found {} pods", i, pods.len());
@@ -94,8 +105,9 @@ use crate::Result;
 /// # }
 /// ```
 #[derive(Clone)]
-pub struct RunpodClient {
+pub struct RunpodClient<V: ApiVersion = V1> {
     inner: Arc<RunpodClientInner>,
+    _version: PhantomData<V>,
 }
 
 /// Inner client state that is shared via Arc for cheap cloning.
@@ -105,17 +117,25 @@ struct RunpodClientInner {
     client: Client,
 }
 
-impl RunpodClient {
+impl<V: ApiVersion> RunpodClient<V> {
     /// Creates a new Runpod API client.
-    #[cfg_attr(feature = "tracing", tracing::instrument(skip(config)))]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(config), fields(api_key = %config.masked_api_key())))]
     pub fn new(config: RunpodConfig) -> Result<Self> {
         let client = Client::builder().timeout(config.timeout()).build()?;
 
         #[cfg(feature = "tracing")]
-        tracing::debug!(base_url = %config.base_url(), timeout = ?config.timeout(), "Created Runpod client");
+        tracing::debug!(
+            base_url = %config.base_url(),
+            timeout = ?config.timeout(),
+            api_key = %config.masked_api_key(),
+            "Created Runpod client"
+        );
 
         let inner = Arc::new(RunpodClientInner { config, client });
-        Ok(Self { inner })
+        Ok(Self {
+            inner,
+            _version: PhantomData,
+        })
     }
 
     /// Creates a new Runpod API client from environment variables.
@@ -134,7 +154,7 @@ impl RunpodClient {
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, Result};
     /// # async fn example() -> Result<()> {
-    /// let client = RunpodClient::from_env()?;
+    /// let client: RunpodClient = RunpodClient::from_env()?;
     /// # Ok(())
     /// # }
     /// ```
@@ -147,13 +167,17 @@ impl RunpodClient {
     /// Creates a GET request.
     #[cfg_attr(
         feature = "tracing",
-        tracing::instrument(skip(self), fields(method = "GET", path))
+        tracing::instrument(skip(self), fields(method = "GET", path, url))
     )]
     pub(crate) fn get(&self, path: &str) -> RequestBuilder {
         let url = format!("{}{}", self.inner.config.base_url(), path);
 
         #[cfg(feature = "tracing")]
-        tracing::debug!(url = %url, "Creating GET request");
+        tracing::debug!(
+            url = %url,
+            method = "GET",
+            "Creating HTTP request"
+        );
 
         self.inner
             .client
@@ -165,13 +189,17 @@ impl RunpodClient {
     /// Creates a POST request.
     #[cfg_attr(
         feature = "tracing",
-        tracing::instrument(skip(self), fields(method = "POST", path))
+        tracing::instrument(skip(self), fields(method = "POST", path, url))
     )]
     pub(crate) fn post(&self, path: &str) -> RequestBuilder {
         let url = format!("{}{}", self.inner.config.base_url(), path);
 
         #[cfg(feature = "tracing")]
-        tracing::debug!(url = %url, "Creating POST request");
+        tracing::debug!(
+            url = %url,
+            method = "POST",
+            "Creating HTTP request"
+        );
 
         self.inner
             .client
@@ -183,13 +211,17 @@ impl RunpodClient {
     /// Creates a PATCH request.
     #[cfg_attr(
         feature = "tracing",
-        tracing::instrument(skip(self), fields(method = "PATCH", path))
+        tracing::instrument(skip(self), fields(method = "PATCH", path, url))
     )]
     pub(crate) fn patch(&self, path: &str) -> RequestBuilder {
         let url = format!("{}{}", self.inner.config.base_url(), path);
 
         #[cfg(feature = "tracing")]
-        tracing::debug!(url = %url, "Creating PATCH request");
+        tracing::debug!(
+            url = %url,
+            method = "PATCH",
+            "Creating HTTP request"
+        );
 
         self.inner
             .client
@@ -201,13 +233,17 @@ impl RunpodClient {
     /// Creates a DELETE request.
     #[cfg_attr(
         feature = "tracing",
-        tracing::instrument(skip(self), fields(method = "DELETE", path))
+        tracing::instrument(skip(self), fields(method = "DELETE", path, url))
     )]
     pub(crate) fn delete(&self, path: &str) -> RequestBuilder {
         let url = format!("{}{}", self.inner.config.base_url(), path);
 
         #[cfg(feature = "tracing")]
-        tracing::debug!(url = %url, "Creating DELETE request");
+        tracing::debug!(
+            url = %url,
+            method = "DELETE",
+            "Creating HTTP request"
+        );
 
         self.inner
             .client
@@ -235,7 +271,7 @@ impl RunpodClient {
     /// #     data: String,
     /// # }
     /// # async fn example() -> Result<()> {
-    /// let client = RunpodClient::from_env()?;
+    /// let client: RunpodClient = RunpodClient::from_env()?;
     /// let query = r#"{ viewer { id name } }"#;
     /// let response: MyResponse = client.graphql_query(query).await?;
     /// # Ok(())
@@ -243,7 +279,7 @@ impl RunpodClient {
     /// ```
     #[cfg(feature = "graphql")]
     #[cfg_attr(docsrs, doc(cfg(feature = "graphql")))]
-    #[cfg_attr(feature = "tracing", tracing::instrument(skip(self, query), fields(query_len = query.len())))]
+    #[cfg_attr(feature = "tracing", tracing::instrument(skip(self, query), fields(query_len = query.len(), url, status)))]
     pub async fn graphql_query<T>(&self, query: &str) -> Result<T>
     where
         T: for<'de> serde::Deserialize<'de>,
@@ -251,7 +287,12 @@ impl RunpodClient {
         let url = self.inner.config.graphql_url();
 
         #[cfg(feature = "tracing")]
-        tracing::debug!(url = %url, "Executing GraphQL query");
+        tracing::debug!(
+            url = %url,
+            query_len = query.len(),
+            api_key = %self.inner.config.masked_api_key(),
+            "Executing GraphQL query"
+        );
 
         let request = self
             .inner
@@ -260,17 +301,23 @@ impl RunpodClient {
             .bearer_auth(self.inner.config.api_key())
             .timeout(self.inner.config.timeout())
             .json(&serde_json::json!({ "query": query }));
+
         let response = request.send().await?;
+        let status = response.status();
 
         #[cfg(feature = "tracing")]
-        tracing::debug!(status = %response.status(), "GraphQL response received");
+        tracing::debug!(
+            status = %status,
+            success = status.is_success(),
+            "GraphQL response received"
+        );
 
         let result = response.json().await?;
         Ok(result)
     }
 }
 
-impl fmt::Debug for RunpodClient {
+impl<V: ApiVersion> fmt::Debug for RunpodClient<V> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut debug_struct = f.debug_struct("RunpodClient");
         debug_struct

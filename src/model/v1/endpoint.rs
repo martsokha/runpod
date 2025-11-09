@@ -30,7 +30,7 @@ use super::template::Template;
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::ScalerType;
+/// use runpod_sdk::model::v1::ScalerType;
 ///
 /// // For real-time AI inference requiring <3s response times
 /// let latency_optimized = ScalerType::QueueDelay;
@@ -71,7 +71,7 @@ pub enum ScalerType {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::Endpoint;
+/// use runpod_sdk::model::v1::Endpoint;
 ///
 /// // Endpoint instances are typically obtained from API responses
 /// // when listing, creating, or retrieving serverless endpoints
@@ -248,8 +248,8 @@ pub type Endpoints = Vec<Endpoint>;
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::{EndpointCreateInput, ScalerType};
-/// use runpod_sdk::model::{ComputeType, CudaVersion, GpuTypeId};
+/// use runpod_sdk::model::v1::{EndpointCreateInput, ScalerType};
+/// use runpod_sdk::model::v1::{ComputeType, CudaVersion, GpuTypeId};
 ///
 /// // High-performance GPU endpoint for real-time AI inference
 /// let inference_endpoint = EndpointCreateInput {
@@ -548,7 +548,7 @@ pub struct EndpointCreateInput {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::{EndpointUpdateInput, ScalerType};
+/// use runpod_sdk::model::v1::{EndpointUpdateInput, ScalerType};
 ///
 /// // Scale up for increased traffic
 /// let scale_up = EndpointUpdateInput {
@@ -754,7 +754,7 @@ pub struct EndpointUpdateInput {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::ListEndpointsQuery;
+/// use runpod_sdk::model::v1::ListEndpointsQuery;
 ///
 /// // Basic listing (endpoints only)
 /// let basic_query = ListEndpointsQuery::default();
@@ -808,7 +808,7 @@ pub struct ListEndpointsQuery {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::GetEndpointQuery;
+/// use runpod_sdk::model::v1::GetEndpointQuery;
 ///
 /// // Basic endpoint information only
 /// let basic_query = GetEndpointQuery::default();

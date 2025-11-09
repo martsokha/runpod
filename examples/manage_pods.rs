@@ -1,12 +1,27 @@
+//! Comprehensive pod lifecycle management example.
+//!
+//! This example demonstrates:
+//! - Listing existing pods with machine details
+//! - Creating a new pod with custom configuration
+//! - Monitoring pod status during startup
+//! - Updating pod properties
+//! - Controlling pod state (stop/start/reset)
+//! - Filtering pods by status
+//!
+//! Run with: cargo run --example manage_pods
+
 use std::time::Duration;
 
-use runpod_sdk::model::{GetPodQuery, ListPodsQuery, PodCreateInput, PodStatus, PodUpdateInput};
-use runpod_sdk::service::PodsService;
+use runpod_sdk::model::v1::{
+    CloudType, GetPodQuery, GpuTypeId, ListPodsQuery, PodCreateInput, PodStatus, PodUpdateInput,
+};
+use runpod_sdk::service::v1::PodsService;
 use runpod_sdk::{Result, RunpodClient};
 use tokio::time::sleep;
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // Create client from RUNPOD_API_KEY environment variable
     let client = RunpodClient::from_env()?;
 
     // List existing pods
@@ -32,8 +47,8 @@ async fn main() -> Result<()> {
     let create_input = PodCreateInput {
         name: Some("test-pod".to_string()),
         image_name: Some("runpod/pytorch:2.0.1-py3.10-cuda11.8.0-devel-ubuntu22.04".to_string()),
-        gpu_type_ids: Some(vec![runpod_sdk::model::GpuTypeId::NvidiaGeForceRtx3070]),
-        cloud_type: Some(runpod_sdk::model::CloudType::Secure),
+        gpu_type_ids: Some(vec![GpuTypeId::NvidiaGeForceRtx3070]),
+        cloud_type: Some(CloudType::Secure),
         volume_in_gb: Some(10),
         container_disk_in_gb: Some(5),
         env: Some({

@@ -1,47 +1,11 @@
 //! RunPod API service traits.
 //!
-//! This module contains trait definitions for all RunPod API services:
+//! This module contains trait definitions for all RunPod API services.
+//! Services are organized by API version in submodules to support future API versioning
+//! while maintaining backward compatibility.
 //!
-//! - [`BillingService`] - Account billing and usage statistics
-//! - [`EndpointsService`] - Serverless endpoint management
-//! - [`PodsService`] - Pod lifecycle operations
-//! - [`RegistryService`] - Container registry authentication
-//! - [`TemplatesService`] - Template creation and management
-//! - [`VolumesService`] - Network volume operations
-//!
-//! All traits are implemented on [`RunpodClient`] providing direct access to API methods.
-//!
-//! # Usage
-//!
-//! Service methods are called directly on the [`RunpodClient`]:
-//!
-//! ```no_run
-//! use runpod_sdk::{RunpodConfig, model::ListPodsQuery};
-//! use runpod_sdk::service::{PodsService, EndpointsService, TemplatesService};
-//!
-//! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-//! let client = RunpodConfig::from_env()?.build_client()?;
-//!
-//! // Call service methods directly on the client
-//! let pods = client.list_pods(ListPodsQuery::default()).await?;
-//! let endpoints = client.list_endpoints(Default::default()).await?;
-//! let templates = client.list_templates(Default::default()).await?;
-//! # Ok(())
-//! # }
-//! ```
+//! All V1 traits are implemented on [`RunpodClient<V1>`](crate::RunpodClient) providing direct access to API methods.
 //!
 //! [`RunpodClient`]: crate::RunpodClient
 
-mod billing;
-mod endpoints;
-mod pods;
-mod registry;
-mod templates;
-mod volumes;
-
-pub use billing::BillingService;
-pub use endpoints::EndpointsService;
-pub use pods::PodsService;
-pub use registry::RegistryService;
-pub use templates::TemplatesService;
-pub use volumes::VolumesService;
+pub mod v1;

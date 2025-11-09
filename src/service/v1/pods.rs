@@ -1,13 +1,13 @@
 use std::future::Future;
 
-use crate::Result;
-use crate::client::RunpodClient;
-use crate::model::{GetPodQuery, ListPodsQuery, Pod, PodCreateInput, PodUpdateInput, Pods};
+use crate::model::v1::{GetPodQuery, ListPodsQuery, Pod, PodCreateInput, PodUpdateInput, Pods};
+use crate::version::V1;
+use crate::{Result, RunpodClient};
 
-/// Trait for managing pods.
+/// Trait for managing pods (V1 API).
 ///
 /// Provides methods for creating, listing, retrieving, updating, and controlling pods.
-/// This trait is implemented on the [`RunpodClient`](crate::client::RunpodClient).
+/// This trait is implemented on [`RunpodClient<V1>`](crate::RunpodClient).
 pub trait PodsService {
     /// Creates a new pod.
     ///
@@ -23,8 +23,8 @@ pub trait PodsService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::PodCreateInput;
-    /// # use runpod_sdk::service::PodsService;
+    /// # use runpod_sdk::model::v1::PodCreateInput;
+    /// # use runpod_sdk::service::v1::PodsService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -56,8 +56,8 @@ pub trait PodsService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::ListPodsQuery;
-    /// # use runpod_sdk::service::PodsService;
+    /// # use runpod_sdk::model::v1::ListPodsQuery;
+    /// # use runpod_sdk::service::v1::PodsService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -89,8 +89,8 @@ pub trait PodsService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::GetPodQuery;
-    /// # use runpod_sdk::service::PodsService;
+    /// # use runpod_sdk::model::v1::GetPodQuery;
+    /// # use runpod_sdk::service::v1::PodsService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -122,8 +122,8 @@ pub trait PodsService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::PodUpdateInput;
-    /// # use runpod_sdk::service::PodsService;
+    /// # use runpod_sdk::model::v1::PodUpdateInput;
+    /// # use runpod_sdk::service::v1::PodsService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -150,7 +150,7 @@ pub trait PodsService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::service::PodsService;
+    /// # use runpod_sdk::service::v1::PodsService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -172,7 +172,7 @@ pub trait PodsService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::service::PodsService;
+    /// # use runpod_sdk::service::v1::PodsService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -194,7 +194,7 @@ pub trait PodsService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::service::PodsService;
+    /// # use runpod_sdk::service::v1::PodsService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -218,7 +218,7 @@ pub trait PodsService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::service::PodsService;
+    /// # use runpod_sdk::service::v1::PodsService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -242,7 +242,7 @@ pub trait PodsService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::service::PodsService;
+    /// # use runpod_sdk::service::v1::PodsService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -255,7 +255,7 @@ pub trait PodsService {
     fn restart_pod(&self, pod_id: &str) -> impl Future<Output = Result<()>>;
 }
 
-impl PodsService for RunpodClient {
+impl PodsService for RunpodClient<V1> {
     async fn create_pod(&self, input: PodCreateInput) -> Result<Pod> {
         let response = self.post("/pods").json(&input).send().await?;
         let pod = response.json().await?;

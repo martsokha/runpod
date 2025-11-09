@@ -1,9 +1,20 @@
-use runpod_sdk::model::ListPodsQuery;
-use runpod_sdk::service::{EndpointsService, PodsService, TemplatesService};
+//! Basic usage example demonstrating simple queries across multiple RunPod services.
+//!
+//! This example shows how to:
+//! - Create a client from environment variables
+//! - List pods with query parameters
+//! - List serverless endpoints
+//! - List templates
+//!
+//! Run with: cargo run --example basic_usage
+
+use runpod_sdk::model::v1::ListPodsQuery;
+use runpod_sdk::service::v1::{EndpointsService, PodsService, TemplatesService};
 use runpod_sdk::{Result, RunpodClient};
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // Create client from RUNPOD_API_KEY environment variable
     let client = RunpodClient::from_env()?;
 
     // List all pods
