@@ -1,3 +1,8 @@
+//! RunPod client configuration and builder.
+//!
+//! This module provides the configuration types and builder pattern for creating
+//! and customizing [`RunpodClient`] instances.
+
 use std::fmt;
 use std::time::Duration;
 

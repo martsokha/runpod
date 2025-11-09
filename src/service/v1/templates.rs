@@ -1,11 +1,10 @@
 use std::future::Future;
 
-use crate::Result;
-use crate::client::RunpodClient;
-use crate::model::{
+use crate::model::v1::{
     GetTemplateQuery, ListTemplatesQuery, Template, TemplateCreateInput, TemplateUpdateInput,
     Templates,
 };
+use crate::{Result, RunpodClient, V1};
 
 /// Trait for managing templates.
 ///
@@ -26,8 +25,8 @@ pub trait TemplatesService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::TemplateCreateInput;
-    /// # use runpod_sdk::service::TemplatesService;
+    /// # use runpod_sdk::model::v1::TemplateCreateInput;
+    /// # use runpod_sdk::service::v1::TemplatesService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::from_env()?;
     /// let client = RunpodClient::new(config)?;
@@ -71,8 +70,8 @@ pub trait TemplatesService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::ListTemplatesQuery;
-    /// # use runpod_sdk::service::TemplatesService;
+    /// # use runpod_sdk::model::v1::ListTemplatesQuery;
+    /// # use runpod_sdk::service::v1::TemplatesService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -104,8 +103,8 @@ pub trait TemplatesService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::GetTemplateQuery;
-    /// # use runpod_sdk::service::TemplatesService;
+    /// # use runpod_sdk::model::v1::GetTemplateQuery;
+    /// # use runpod_sdk::service::v1::TemplatesService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -138,8 +137,8 @@ pub trait TemplatesService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::TemplateUpdateInput;
-    /// # use runpod_sdk::service::TemplatesService;
+    /// # use runpod_sdk::model::v1::TemplateUpdateInput;
+    /// # use runpod_sdk::service::v1::TemplatesService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -172,7 +171,7 @@ pub trait TemplatesService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::service::TemplatesService;
+    /// # use runpod_sdk::service::v1::TemplatesService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -185,7 +184,7 @@ pub trait TemplatesService {
     fn delete_template(&self, template_id: &str) -> impl Future<Output = Result<()>>;
 }
 
-impl TemplatesService for RunpodClient {
+impl TemplatesService for RunpodClient<V1> {
     async fn create_template(&self, input: TemplateCreateInput) -> Result<Template> {
         let response = self.post("/templates").json(&input).send().await?;
         let template = response.json().await?;

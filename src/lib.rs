@@ -4,8 +4,14 @@
 
 mod client;
 pub mod model;
+#[doc(hidden)]
+pub mod prelude;
 pub mod service;
 
+#[doc(hidden)]
+pub use client::ApiVersion;
+#[doc(hidden)]
+pub use client::V1;
 pub use client::{RunpodBuilder, RunpodClient, RunpodConfig};
 
 use crate::client::RunpodBuilderError;
@@ -20,9 +26,10 @@ use crate::client::RunpodBuilderError;
 /// Handling different error types:
 ///
 /// ```no_run
-/// # use runpod_sdk::{Error, Result, RunpodClient, service::PodsService};
+/// # use runpod_sdk::{Error, Result, RunpodClient};
+/// # use runpod_sdk::service::v1::PodsService;
 /// # async fn example() -> Result<()> {
-/// let client = RunpodClient::from_env()?;
+/// let client: RunpodClient = RunpodClient::from_env()?;
 ///
 /// match client.list_pods(Default::default()).await {
 ///     Ok(pods) => println!("Found {} pods", pods.len()),

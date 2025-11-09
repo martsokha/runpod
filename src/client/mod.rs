@@ -36,6 +36,8 @@
 
 mod config;
 mod runpod;
+mod version;
 
 pub use config::{RunpodBuilder, RunpodBuilderError, RunpodConfig};
 pub use runpod::RunpodClient;
+pub use version::{ApiVersion, V1};

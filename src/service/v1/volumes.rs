@@ -1,10 +1,9 @@
 use std::future::Future;
 
-use crate::Result;
-use crate::client::RunpodClient;
-use crate::model::{
+use crate::model::v1::{
     NetworkVolume, NetworkVolumeCreateInput, NetworkVolumeUpdateInput, NetworkVolumes,
 };
+use crate::{Result, RunpodClient, V1};
 
 /// Trait for managing network volumes.
 ///
@@ -25,8 +24,8 @@ pub trait VolumesService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::NetworkVolumeCreateInput;
-    /// # use runpod_sdk::service::VolumesService;
+    /// # use runpod_sdk::model::v1::NetworkVolumeCreateInput;
+    /// # use runpod_sdk::service::v1::VolumesService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -57,7 +56,7 @@ pub trait VolumesService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::service::VolumesService;
+    /// # use runpod_sdk::service::v1::VolumesService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -83,7 +82,7 @@ pub trait VolumesService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::service::VolumesService;
+    /// # use runpod_sdk::service::v1::VolumesService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -110,8 +109,8 @@ pub trait VolumesService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::NetworkVolumeUpdateInput;
-    /// # use runpod_sdk::service::VolumesService;
+    /// # use runpod_sdk::model::v1::NetworkVolumeUpdateInput;
+    /// # use runpod_sdk::service::v1::VolumesService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -144,7 +143,7 @@ pub trait VolumesService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::service::VolumesService;
+    /// # use runpod_sdk::service::v1::VolumesService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -157,7 +156,7 @@ pub trait VolumesService {
     fn delete_volume(&self, volume_id: &str) -> impl Future<Output = Result<()>>;
 }
 
-impl VolumesService for RunpodClient {
+impl VolumesService for RunpodClient<V1> {
     async fn create_volume(&self, input: NetworkVolumeCreateInput) -> Result<NetworkVolume> {
         let response = self.post("/networkvolumes").json(&input).send().await?;
         let volume = response.json().await?;

@@ -34,8 +34,8 @@ runpod-sdk = { version = "0.1", features = [] }
 
 ```rust,no_run
 use runpod_sdk::{RunpodConfig, Result};
-use runpod_sdk::model::ListPodsQuery;
-use runpod_sdk::service::PodsService;
+use runpod_sdk::model::v1::ListPodsQuery;
+use runpod_sdk::service::v1::PodsService;
 use std::time::Duration;
 
 #[tokio::main]
@@ -69,7 +69,7 @@ use runpod_sdk::{RunpodClient, Result};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let client = RunpodClient::from_env()?;
+    let client: RunpodClient = RunpodClient::from_env()?;
     Ok(())
 }
 ```
@@ -82,10 +82,10 @@ Choose between two TLS implementations:
 
 ```toml
 # Default: rustls-tls (recommended)
-runpod-sdk = { version = "0.1.0", features = [] }
+runpod-sdk = { version = "0.1", features = [] }
 
 # Alternative: native-tls
-runpod-sdk = { version = "0.1.0", features = ["native-tls"], default-features = false }
+runpod-sdk = { version = "0.1", features = ["native-tls"], default-features = false }
 ```
 
 ### Tracing Support
@@ -93,7 +93,7 @@ runpod-sdk = { version = "0.1.0", features = ["native-tls"], default-features = 
 Enable comprehensive logging and tracing:
 
 ```toml
-runpod-sdk = { version = "0.1.0", features = ["tracing"] }
+runpod-sdk = { version = "0.1", features = ["tracing"] }
 ```
 
 ### Enum String Conversions
@@ -101,7 +101,7 @@ runpod-sdk = { version = "0.1.0", features = ["tracing"] }
 Enable string parsing and conversion for all enums:
 
 ```toml
-runpod-sdk = { version = "0.1.0", features = ["strum"] }
+runpod-sdk = { version = "0.1", features = ["strum"] }
 ```
 
 ## Examples

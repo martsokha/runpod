@@ -1,9 +1,19 @@
-use runpod_sdk::model::ListEndpointsQuery;
-use runpod_sdk::service::EndpointsService;
+//! Serverless endpoint management example.
+//!
+//! This example demonstrates:
+//! - Listing endpoints with detailed information
+//! - Querying endpoint templates and workers
+//! - Displaying endpoint configuration
+//!
+//! Run with: cargo run --example manage_endpoints
+
+use runpod_sdk::model::v1::ListEndpointsQuery;
+use runpod_sdk::service::v1::EndpointsService;
 use runpod_sdk::{Result, RunpodClient};
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // Create client from RUNPOD_API_KEY environment variable
     let client = RunpodClient::from_env()?;
 
     // List all endpoints with template and worker information

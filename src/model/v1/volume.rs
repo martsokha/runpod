@@ -23,7 +23,7 @@ pub type NetworkVolumes = Vec<NetworkVolume>;
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::NetworkVolumeCreateInput;
+/// use runpod_sdk::model::v1::NetworkVolumeCreateInput;
 ///
 /// // Create a small development volume
 /// let dev_volume = NetworkVolumeCreateInput {
@@ -116,7 +116,7 @@ pub struct NetworkVolumeCreateInput {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::NetworkVolumeUpdateInput;
+/// use runpod_sdk::model::v1::NetworkVolumeUpdateInput;
 ///
 /// // Only change the name
 /// let rename_only = NetworkVolumeUpdateInput {
