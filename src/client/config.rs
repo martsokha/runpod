@@ -26,7 +26,8 @@ use crate::version::{ApiVersion, V1};
 /// Creating a config with defaults:
 /// ```no_run
 /// # use runpod_sdk::RunpodConfig;
-/// let config: RunpodConfig = RunpodConfig::builder()
+/// # use runpod_sdk::version::V1;
+/// let config = RunpodConfig::<V1>::builder()
 ///     .with_api_key("your-api-key")
 ///     .build()
 ///     .unwrap();
@@ -42,8 +43,9 @@ use crate::version::{ApiVersion, V1};
 /// Custom configuration:
 /// ```no_run
 /// # use runpod_sdk::RunpodConfig;
+/// # use runpod_sdk::version::V1;
 /// # use std::time::Duration;
-/// let config: RunpodConfig = RunpodConfig::builder()
+/// let config = RunpodConfig::<V1>::builder()
 ///     .with_api_key("your-api-key")
 ///     .with_base_url("https://custom.api.com")
 ///     .with_timeout(Duration::from_secs(60))
@@ -138,7 +140,8 @@ impl<V: ApiVersion> RunpodConfig<V> {
     ///
     /// ```no_run
     /// # use runpod_sdk::RunpodConfig;
-    /// let config: RunpodConfig = RunpodConfig::builder()
+    /// # use runpod_sdk::version::V1;
+    /// let config = RunpodConfig::<V1>::builder()
     ///     .with_api_key("your-api-key")
     ///     .build()
     ///     .unwrap();
@@ -153,7 +156,8 @@ impl<V: ApiVersion> RunpodConfig<V> {
     ///
     /// ```no_run
     /// # use runpod_sdk::RunpodConfig;
-    /// let config: RunpodConfig = RunpodConfig::builder()
+    /// # use runpod_sdk::version::V1;
+    /// let config = RunpodConfig::<V1>::builder()
     ///     .with_api_key("your-api-key")
     ///     .build()
     ///     .unwrap();

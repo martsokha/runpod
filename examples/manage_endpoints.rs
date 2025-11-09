@@ -1,10 +1,4 @@
 //! Endpoint management example.
-//!
-//! This example demonstrates:
-//! - Listing endpoints
-//! - Viewing endpoint details
-//! - Accessing template and worker information
-//!
 //! Run with: cargo run --example manage_endpoints
 
 use runpod_sdk::model::v1::ListEndpointsQuery;

@@ -68,34 +68,18 @@ check-env: ## Verify environment variables are set
 	@$(call shell-log,Timeout: $(RUNPOD_TIMEOUT_SECS) seconds)
 
 .PHONY: build
-build: ## Build the project
-	$(call make-log,Building project...)
-	@cargo build
-
-.PHONY: build-release
-build-release: ## Build the project in release mode
+build: ## Build the project in release mode
 	$(call make-log,Building project in release mode...)
 	@cargo build --release
 
 .PHONY: test
-test: check-env ## Run all tests with environment loaded
-	$(call make-log,Running tests with environment loaded...)
-	@cargo test
-
-.PHONY: test-lib
-test-lib: ## Run unit tests only (no API key required)
-	$(call make-log,Running unit tests...)
-	@cargo test --lib
-
-.PHONY: test-integration
-test-integration: check-env ## Run integration tests (requires API key)
-	$(call make-log,Running integration tests...)
-	@cargo test --test '*' -- --test-threads=1
-
-.PHONY: test-doc
-test-doc: ## Run documentation tests (may require API key)
-	$(call make-log,Running documentation tests...)
-	@cargo test --doc
+test: ## Run all tests (unit, integration, and doc tests) with environment loaded
+	$(call make-log,Running all tests with environment loaded...)
+	@RUNPOD_API_KEY="$(RUNPOD_API_KEY)" \
+	RUNPOD_BASE_URL="$(RUNPOD_BASE_URL)" \
+	RUNPOD_GRAPHQL_URL="$(RUNPOD_GRAPHQL_URL)" \
+	RUNPOD_TIMEOUT_SECS="$(RUNPOD_TIMEOUT_SECS)" \
+	cargo test
 
 .PHONY: examples
 examples: check-env ## Run all examples
@@ -109,6 +93,11 @@ examples: check-env ## Run all examples
 		cargo run --example $$example || exit 1; \
 	done
 
+.PHONY: fmt
+fmt: ## Format code
+	$(call make-log,Formatting code...)
+	@cargo fmt
+
 .PHONY: clippy
 clippy: ## Run clippy lints
 	$(call make-log,Running clippy...)
@@ -118,9 +107,9 @@ clippy: ## Run clippy lints
 	RUNPOD_TIMEOUT_SECS="$(RUNPOD_TIMEOUT_SECS)" \
 	cargo clippy --all-targets --all-features -- -D warnings
 
-.PHONY: security
-security: install-tools ## Run security audits
-	$(call make-log,Running security audits...)
+.PHONY: run-tools
+run-tools: install-tools ## Run security audits and other tools
+	$(call make-log,Running security audits and tools...)
 	@$(call shell-log,Running cargo audit...)
 	@cargo audit
 	@$(call shell-log,Running cargo deny...)
@@ -129,19 +118,7 @@ security: install-tools ## Run security audits
 .PHONY: doc
 doc: ## Generate and open documentation
 	$(call make-log,Generating and opening documentation...)
-	@cargo doc --no-deps --open
-
-.PHONY: verify
-verify: fmt-check clippy test-lib security ## Run core verification checks (no API key required)
-	$(call make-log,All verification checks passed!)
-
-.PHONY: verify-full
-verify-full: verify test-doc ## Run all verification checks including doctests
-	$(call make-log,All verification checks including doctests passed!)
-
-.PHONY: ci
-ci: verify ## Run CI pipeline (no API key required)
-	$(call make-log,CI pipeline completed successfully!)
+	@RUSTDOCFLAGS="--cfg docsrs" cargo +nightly doc --all-features --open
 
 .PHONY: dev
 dev: fmt clippy test ## Development workflow: format, lint, and test

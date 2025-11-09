@@ -1,11 +1,4 @@
 //! Pod lifecycle management example.
-//!
-//! This example demonstrates:
-//! - Listing existing pods
-//! - Creating a new pod
-//! - Updating pod properties
-//! - Stopping a pod
-//!
 //! Run with: cargo run --example manage_pods
 
 use runpod_sdk::model::v1::{CloudType, ListPodsQuery, PodCreateInput, PodUpdateInput};
@@ -61,8 +54,8 @@ async fn main() -> Result<()> {
     client.stop_pod(&pod_id).await?;
     println!("Pod stopped");
 
-    // Cleanup (uncomment to delete)
-    // client.delete_pod(&pod_id).await?;
+    // Cleanup
+    client.delete_pod(&pod_id).await?;
 
     Ok(())
 }

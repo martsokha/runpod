@@ -30,6 +30,7 @@ use crate::TRACING_TARGET_CLIENT;
 /// # Services
 ///
 /// The client implements V1 API service traits that provide direct access to API methods:
+///
 /// - [`PodsService`](crate::service::v1::PodsService) - Pod lifecycle management
 /// - [`EndpointsService`](crate::service::v1::EndpointsService) - Serverless endpoint operations
 /// - [`TemplatesService`](crate::service::v1::TemplatesService) - Template creation and management
@@ -45,9 +46,10 @@ use crate::TRACING_TARGET_CLIENT;
 /// use runpod_sdk::{RunpodClient, Result};
 /// use runpod_sdk::model::v1::ListPodsQuery;
 /// use runpod_sdk::service::v1::PodsService;
+/// use runpod_sdk::version::V1;
 ///
 /// # async fn example() -> Result<()> {
-/// let client: RunpodClient = RunpodClient::from_env()?;
+/// let client = RunpodClient::<V1>::from_env()?;
 ///
 /// // List all pods
 /// let pods = client.list_pods(ListPodsQuery::default()).await?;
@@ -65,7 +67,7 @@ use crate::TRACING_TARGET_CLIENT;
 /// use std::time::Duration;
 ///
 /// # async fn example() -> Result<()> {
-/// let client: RunpodClient = RunpodConfig::<V1>::builder()
+/// let client = RunpodConfig::<V1>::builder()
 ///     .with_api_key("your-api-key")
 ///     .with_base_url("https://api.runpod.io/v1")
 ///     .with_timeout(Duration::from_secs(30))
@@ -263,13 +265,14 @@ impl<V: ApiVersion> RunpodClient<V> {
     /// # Example
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, Result};
+    /// # use runpod_sdk::version::V1;
     /// # use serde::Deserialize;
     /// # #[derive(Deserialize)]
     /// # struct MyResponse {
     /// #     data: String,
     /// # }
     /// # async fn example() -> Result<()> {
-    /// let client: RunpodClient = RunpodClient::from_env()?;
+    /// let client = RunpodClient::<V1>::from_env()?;
     /// let query = r#"{ viewer { id name } }"#;
     /// let response: MyResponse = client.graphql_query(query).await?;
     /// # Ok(())
