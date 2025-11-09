@@ -1,5 +1,7 @@
 use std::future::Future;
 
+#[cfg(feature = "tracing")]
+use crate::TRACING_TARGET_SERVICE;
 use crate::model::v1::{
     NetworkVolume, NetworkVolumeCreateInput, NetworkVolumeUpdateInput, NetworkVolumes,
 };
@@ -159,24 +161,48 @@ pub trait VolumesService {
 
 impl VolumesService for RunpodClient<V1> {
     async fn create_volume(&self, input: NetworkVolumeCreateInput) -> Result<NetworkVolume> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Creating network volume");
+
         let response = self.post("/networkvolumes").json(&input).send().await?;
         let response = response.error_for_status()?;
-        let volume = response.json().await?;
+        let volume: NetworkVolume = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, volume_id = %volume.id, "Network volume created successfully");
+
         Ok(volume)
     }
 
     async fn list_volumes(&self) -> Result<NetworkVolumes> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Listing network volumes");
+
         let response = self.get("/networkvolumes").send().await?;
         let response = response.error_for_status()?;
-        let volumes = response.json().await?;
+        let volumes: NetworkVolumes = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(
+            count = volumes.len(),
+            "Network volumes retrieved successfully"
+        );
+
         Ok(volumes)
     }
 
     async fn get_volume(&self, volume_id: &str) -> Result<NetworkVolume> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Getting network volume");
+
         let path = format!("/networkvolumes/{}", volume_id);
         let response = self.get(&path).send().await?;
         let response = response.error_for_status()?;
-        let volume = response.json().await?;
+        let volume: NetworkVolume = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Network volume retrieved successfully");
+
         Ok(volume)
     }
 
@@ -185,17 +211,31 @@ impl VolumesService for RunpodClient<V1> {
         volume_id: &str,
         input: NetworkVolumeUpdateInput,
     ) -> Result<NetworkVolume> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Updating network volume");
+
         let path = format!("/networkvolumes/{}", volume_id);
         let response = self.patch(&path).json(&input).send().await?;
         let response = response.error_for_status()?;
-        let volume = response.json().await?;
+        let volume: NetworkVolume = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Network volume updated successfully");
+
         Ok(volume)
     }
 
     async fn delete_volume(&self, volume_id: &str) -> Result<()> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Deleting network volume");
+
         let path = format!("/networkvolumes/{}", volume_id);
         let response = self.delete(&path).send().await?;
         response.error_for_status()?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Network volume deleted successfully");
+
         Ok(())
     }
 }

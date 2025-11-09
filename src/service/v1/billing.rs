@@ -1,5 +1,7 @@
 use std::future::Future;
 
+#[cfg(feature = "tracing")]
+use crate::TRACING_TARGET_SERVICE;
 use crate::model::v1::{
     BillingRecords, EndpointBillingQuery, NetworkVolumeBillingQuery, PodBillingQuery,
 };
@@ -188,27 +190,57 @@ pub trait BillingService {
 
 impl BillingService for RunpodClient<V1> {
     async fn get_pod_billing(&self, query: PodBillingQuery) -> Result<BillingRecords> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Getting pod billing records");
+
         let response = self.get("/billing/pods").query(&query).send().await?;
         let response = response.error_for_status()?;
-        let records = response.json().await?;
+        let records: BillingRecords = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(
+            count = records.len(),
+            "Pod billing records retrieved successfully"
+        );
+
         Ok(records)
     }
 
     async fn get_endpoint_billing(&self, query: EndpointBillingQuery) -> Result<BillingRecords> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Getting endpoint billing records");
+
         let response = self.get("/billing/endpoints").query(&query).send().await?;
         let response = response.error_for_status()?;
-        let records = response.json().await?;
+        let records: BillingRecords = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(
+            count = records.len(),
+            "Endpoint billing records retrieved successfully"
+        );
+
         Ok(records)
     }
 
     async fn get_volume_billing(&self, query: NetworkVolumeBillingQuery) -> Result<BillingRecords> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Getting network volume billing records");
+
         let response = self
             .get("/billing/networkvolumes")
             .query(&query)
             .send()
             .await?;
         let response = response.error_for_status()?;
-        let records = response.json().await?;
+        let records: BillingRecords = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(
+            count = records.len(),
+            "Network volume billing records retrieved successfully"
+        );
+
         Ok(records)
     }
 }

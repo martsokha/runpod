@@ -1,5 +1,7 @@
 use std::future::Future;
 
+#[cfg(feature = "tracing")]
+use crate::TRACING_TARGET_SERVICE;
 use crate::model::v1::{
     ContainerRegistryAuth, ContainerRegistryAuthCreateInput, ContainerRegistryAuths,
 };
@@ -128,35 +130,63 @@ impl RegistryService for RunpodClient<V1> {
         &self,
         input: ContainerRegistryAuthCreateInput,
     ) -> Result<ContainerRegistryAuth> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Creating registry auth");
+
         let response = self
             .post("/containerregistryauth")
             .json(&input)
             .send()
             .await?;
         let response = response.error_for_status()?;
-        let auth = response.json().await?;
+        let auth: ContainerRegistryAuth = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, auth_id = %auth.id, "Registry auth created successfully");
+
         Ok(auth)
     }
 
     async fn list_registry_auths(&self) -> Result<ContainerRegistryAuths> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Listing registry auths");
+
         let response = self.get("/containerregistryauth").send().await?;
         let response = response.error_for_status()?;
-        let auths = response.json().await?;
+        let auths: ContainerRegistryAuths = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, count = auths.len(), "Registry auths retrieved successfully");
+
         Ok(auths)
     }
 
     async fn get_registry_auth(&self, auth_id: &str) -> Result<ContainerRegistryAuth> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Getting registry auth");
+
         let path = format!("/containerregistryauth/{}", auth_id);
         let response = self.get(&path).send().await?;
         let response = response.error_for_status()?;
-        let auth = response.json().await?;
+        let auth: ContainerRegistryAuth = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Registry auth retrieved successfully");
+
         Ok(auth)
     }
 
     async fn delete_registry_auth(&self, auth_id: &str) -> Result<()> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Deleting registry auth");
+
         let path = format!("/containerregistryauth/{}", auth_id);
         let response = self.delete(&path).send().await?;
         response.error_for_status()?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Registry auth deleted successfully");
+
         Ok(())
     }
 }

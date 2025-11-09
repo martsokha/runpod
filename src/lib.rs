@@ -10,6 +10,21 @@ pub mod service;
 
 pub use client::{RunpodBuilder, RunpodClient, RunpodConfig, version};
 
+/// Tracing target for client-level operations (HTTP requests, client creation).
+#[cfg(feature = "tracing")]
+#[cfg_attr(docsrs, doc(cfg(feature = "tracing")))]
+pub const TRACING_TARGET_CLIENT: &str = "runpod_sdk::client";
+
+/// Tracing target for configuration operations (config creation, validation).
+#[cfg(feature = "tracing")]
+#[cfg_attr(docsrs, doc(cfg(feature = "tracing")))]
+pub const TRACING_TARGET_CONFIG: &str = "runpod_sdk::config";
+
+/// Tracing target for service-level operations (API calls, business logic).
+#[cfg(feature = "tracing")]
+#[cfg_attr(docsrs, doc(cfg(feature = "tracing")))]
+pub const TRACING_TARGET_SERVICE: &str = "runpod_sdk::service";
+
 #[doc(hidden)]
 pub use crate::client::RunpodBuilderError;
 

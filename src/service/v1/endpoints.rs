@@ -1,5 +1,7 @@
 use std::future::Future;
 
+#[cfg(feature = "tracing")]
+use crate::TRACING_TARGET_SERVICE;
 use crate::model::v1::{
     Endpoint, EndpointCreateInput, EndpointUpdateInput, Endpoints, GetEndpointQuery,
     ListEndpointsQuery,
@@ -183,24 +185,45 @@ pub trait EndpointsService {
 
 impl EndpointsService for RunpodClient<V1> {
     async fn create_endpoint(&self, input: EndpointCreateInput) -> Result<Endpoint> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Creating endpoint");
+
         let response = self.post("/endpoints").json(&input).send().await?;
         let response = response.error_for_status()?;
-        let endpoint = response.json().await?;
+        let endpoint: Endpoint = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, endpoint_id = %endpoint.id, "Endpoint created successfully");
+
         Ok(endpoint)
     }
 
     async fn list_endpoints(&self, query: ListEndpointsQuery) -> Result<Endpoints> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Listing endpoints");
+
         let response = self.get("/endpoints").query(&query).send().await?;
         let response = response.error_for_status()?;
-        let endpoints = response.json().await?;
+        let endpoints: Endpoints = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, count = endpoints.len(), "Endpoints retrieved successfully");
+
         Ok(endpoints)
     }
 
     async fn get_endpoint(&self, endpoint_id: &str, query: GetEndpointQuery) -> Result<Endpoint> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Getting endpoint");
+
         let path = format!("/endpoints/{}", endpoint_id);
         let response = self.get(&path).query(&query).send().await?;
         let response = response.error_for_status()?;
-        let endpoint = response.json().await?;
+        let endpoint: Endpoint = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Endpoint retrieved successfully");
+
         Ok(endpoint)
     }
 
@@ -209,17 +232,31 @@ impl EndpointsService for RunpodClient<V1> {
         endpoint_id: &str,
         input: EndpointUpdateInput,
     ) -> Result<Endpoint> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Updating endpoint");
+
         let path = format!("/endpoints/{}", endpoint_id);
         let response = self.patch(&path).json(&input).send().await?;
         let response = response.error_for_status()?;
-        let endpoint = response.json().await?;
+        let endpoint: Endpoint = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Endpoint updated successfully");
+
         Ok(endpoint)
     }
 
     async fn delete_endpoint(&self, endpoint_id: &str) -> Result<()> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Deleting endpoint");
+
         let path = format!("/endpoints/{}", endpoint_id);
         let response = self.delete(&path).send().await?;
         response.error_for_status()?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Endpoint deleted successfully");
+
         Ok(())
     }
 }
