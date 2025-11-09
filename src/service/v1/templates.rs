@@ -188,12 +188,14 @@ pub trait TemplatesService {
 impl TemplatesService for RunpodClient<V1> {
     async fn create_template(&self, input: TemplateCreateInput) -> Result<Template> {
         let response = self.post("/templates").json(&input).send().await?;
+        let response = response.error_for_status()?;
         let template = response.json().await?;
         Ok(template)
     }
 
     async fn list_templates(&self, query: ListTemplatesQuery) -> Result<Templates> {
         let response = self.get("/templates").query(&query).send().await?;
+        let response = response.error_for_status()?;
         let templates = response.json().await?;
         Ok(templates)
     }
@@ -201,6 +203,7 @@ impl TemplatesService for RunpodClient<V1> {
     async fn get_template(&self, template_id: &str, query: GetTemplateQuery) -> Result<Template> {
         let path = format!("/templates/{}", template_id);
         let response = self.get(&path).query(&query).send().await?;
+        let response = response.error_for_status()?;
         let template = response.json().await?;
         Ok(template)
     }
@@ -212,13 +215,15 @@ impl TemplatesService for RunpodClient<V1> {
     ) -> Result<Template> {
         let path = format!("/templates/{}", template_id);
         let response = self.patch(&path).json(&input).send().await?;
+        let response = response.error_for_status()?;
         let template = response.json().await?;
         Ok(template)
     }
 
     async fn delete_template(&self, template_id: &str) -> Result<()> {
         let path = format!("/templates/{}", template_id);
-        self.delete(&path).send().await?;
+        let response = self.delete(&path).send().await?;
+        response.error_for_status()?;
         Ok(())
     }
 }

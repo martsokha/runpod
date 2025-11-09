@@ -189,12 +189,14 @@ pub trait BillingService {
 impl BillingService for RunpodClient<V1> {
     async fn get_pod_billing(&self, query: PodBillingQuery) -> Result<BillingRecords> {
         let response = self.get("/billing/pods").query(&query).send().await?;
+        let response = response.error_for_status()?;
         let records = response.json().await?;
         Ok(records)
     }
 
     async fn get_endpoint_billing(&self, query: EndpointBillingQuery) -> Result<BillingRecords> {
         let response = self.get("/billing/endpoints").query(&query).send().await?;
+        let response = response.error_for_status()?;
         let records = response.json().await?;
         Ok(records)
     }
@@ -205,6 +207,7 @@ impl BillingService for RunpodClient<V1> {
             .query(&query)
             .send()
             .await?;
+        let response = response.error_for_status()?;
         let records = response.json().await?;
         Ok(records)
     }

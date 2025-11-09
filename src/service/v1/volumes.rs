@@ -160,12 +160,14 @@ pub trait VolumesService {
 impl VolumesService for RunpodClient<V1> {
     async fn create_volume(&self, input: NetworkVolumeCreateInput) -> Result<NetworkVolume> {
         let response = self.post("/networkvolumes").json(&input).send().await?;
+        let response = response.error_for_status()?;
         let volume = response.json().await?;
         Ok(volume)
     }
 
     async fn list_volumes(&self) -> Result<NetworkVolumes> {
         let response = self.get("/networkvolumes").send().await?;
+        let response = response.error_for_status()?;
         let volumes = response.json().await?;
         Ok(volumes)
     }
@@ -173,6 +175,7 @@ impl VolumesService for RunpodClient<V1> {
     async fn get_volume(&self, volume_id: &str) -> Result<NetworkVolume> {
         let path = format!("/networkvolumes/{}", volume_id);
         let response = self.get(&path).send().await?;
+        let response = response.error_for_status()?;
         let volume = response.json().await?;
         Ok(volume)
     }
@@ -184,13 +187,15 @@ impl VolumesService for RunpodClient<V1> {
     ) -> Result<NetworkVolume> {
         let path = format!("/networkvolumes/{}", volume_id);
         let response = self.patch(&path).json(&input).send().await?;
+        let response = response.error_for_status()?;
         let volume = response.json().await?;
         Ok(volume)
     }
 
     async fn delete_volume(&self, volume_id: &str) -> Result<()> {
         let path = format!("/networkvolumes/{}", volume_id);
-        self.delete(&path).send().await?;
+        let response = self.delete(&path).send().await?;
+        response.error_for_status()?;
         Ok(())
     }
 }

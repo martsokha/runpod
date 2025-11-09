@@ -184,12 +184,14 @@ pub trait EndpointsService {
 impl EndpointsService for RunpodClient<V1> {
     async fn create_endpoint(&self, input: EndpointCreateInput) -> Result<Endpoint> {
         let response = self.post("/endpoints").json(&input).send().await?;
+        let response = response.error_for_status()?;
         let endpoint = response.json().await?;
         Ok(endpoint)
     }
 
     async fn list_endpoints(&self, query: ListEndpointsQuery) -> Result<Endpoints> {
         let response = self.get("/endpoints").query(&query).send().await?;
+        let response = response.error_for_status()?;
         let endpoints = response.json().await?;
         Ok(endpoints)
     }
@@ -197,6 +199,7 @@ impl EndpointsService for RunpodClient<V1> {
     async fn get_endpoint(&self, endpoint_id: &str, query: GetEndpointQuery) -> Result<Endpoint> {
         let path = format!("/endpoints/{}", endpoint_id);
         let response = self.get(&path).query(&query).send().await?;
+        let response = response.error_for_status()?;
         let endpoint = response.json().await?;
         Ok(endpoint)
     }
@@ -208,13 +211,15 @@ impl EndpointsService for RunpodClient<V1> {
     ) -> Result<Endpoint> {
         let path = format!("/endpoints/{}", endpoint_id);
         let response = self.patch(&path).json(&input).send().await?;
+        let response = response.error_for_status()?;
         let endpoint = response.json().await?;
         Ok(endpoint)
     }
 
     async fn delete_endpoint(&self, endpoint_id: &str) -> Result<()> {
         let path = format!("/endpoints/{}", endpoint_id);
-        self.delete(&path).send().await?;
+        let response = self.delete(&path).send().await?;
+        response.error_for_status()?;
         Ok(())
     }
 }

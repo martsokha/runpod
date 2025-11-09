@@ -258,12 +258,14 @@ pub trait PodsService {
 impl PodsService for RunpodClient<V1> {
     async fn create_pod(&self, input: PodCreateInput) -> Result<Pod> {
         let response = self.post("/pods").json(&input).send().await?;
+        let response = response.error_for_status()?;
         let pod = response.json().await?;
         Ok(pod)
     }
 
     async fn list_pods(&self, query: ListPodsQuery) -> Result<Pods> {
         let response = self.get("/pods").query(&query).send().await?;
+        let response = response.error_for_status()?;
         let pods = response.json().await?;
         Ok(pods)
     }
@@ -271,6 +273,7 @@ impl PodsService for RunpodClient<V1> {
     async fn get_pod(&self, pod_id: &str, query: GetPodQuery) -> Result<Pod> {
         let path = format!("/pods/{}", pod_id);
         let response = self.get(&path).query(&query).send().await?;
+        let response = response.error_for_status()?;
         let pod = response.json().await?;
         Ok(pod)
     }
@@ -278,37 +281,43 @@ impl PodsService for RunpodClient<V1> {
     async fn update_pod(&self, pod_id: &str, input: PodUpdateInput) -> Result<Pod> {
         let path = format!("/pods/{}", pod_id);
         let response = self.patch(&path).json(&input).send().await?;
+        let response = response.error_for_status()?;
         let pod = response.json().await?;
         Ok(pod)
     }
 
     async fn delete_pod(&self, pod_id: &str) -> Result<()> {
         let path = format!("/pods/{}", pod_id);
-        self.delete(&path).send().await?;
+        let response = self.delete(&path).send().await?;
+        response.error_for_status()?;
         Ok(())
     }
 
     async fn start_pod(&self, pod_id: &str) -> Result<()> {
         let path = format!("/pods/{}/start", pod_id);
-        self.post(&path).send().await?;
+        let response = self.post(&path).send().await?;
+        response.error_for_status()?;
         Ok(())
     }
 
     async fn stop_pod(&self, pod_id: &str) -> Result<()> {
         let path = format!("/pods/{}/stop", pod_id);
-        self.post(&path).send().await?;
+        let response = self.post(&path).send().await?;
+        response.error_for_status()?;
         Ok(())
     }
 
     async fn reset_pod(&self, pod_id: &str) -> Result<()> {
         let path = format!("/pods/{}/reset", pod_id);
-        self.post(&path).send().await?;
+        let response = self.post(&path).send().await?;
+        response.error_for_status()?;
         Ok(())
     }
 
     async fn restart_pod(&self, pod_id: &str) -> Result<()> {
         let path = format!("/pods/{}/restart", pod_id);
-        self.post(&path).send().await?;
+        let response = self.post(&path).send().await?;
+        response.error_for_status()?;
         Ok(())
     }
 }

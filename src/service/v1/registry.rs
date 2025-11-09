@@ -133,12 +133,14 @@ impl RegistryService for RunpodClient<V1> {
             .json(&input)
             .send()
             .await?;
+        let response = response.error_for_status()?;
         let auth = response.json().await?;
         Ok(auth)
     }
 
     async fn list_registry_auths(&self) -> Result<ContainerRegistryAuths> {
         let response = self.get("/containerregistryauth").send().await?;
+        let response = response.error_for_status()?;
         let auths = response.json().await?;
         Ok(auths)
     }
@@ -146,13 +148,15 @@ impl RegistryService for RunpodClient<V1> {
     async fn get_registry_auth(&self, auth_id: &str) -> Result<ContainerRegistryAuth> {
         let path = format!("/containerregistryauth/{}", auth_id);
         let response = self.get(&path).send().await?;
+        let response = response.error_for_status()?;
         let auth = response.json().await?;
         Ok(auth)
     }
 
     async fn delete_registry_auth(&self, auth_id: &str) -> Result<()> {
         let path = format!("/containerregistryauth/{}", auth_id);
-        self.delete(&path).send().await?;
+        let response = self.delete(&path).send().await?;
+        response.error_for_status()?;
         Ok(())
     }
 }

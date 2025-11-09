@@ -8,14 +8,15 @@ endif
 # Environment variables with defaults
 RUNPOD_API_KEY ?=
 RUNPOD_BASE_URL ?= https://rest.runpod.io/v1
+RUNPOD_GRAPHQL_URL ?= https://api.runpod.io/graphql
 RUNPOD_TIMEOUT_SECS ?= 30
 
-# Make-level logger (evaluated by make; does not invoke the shell)
+# Make-level logger
 define make-log
 $(info [$(shell date '+%Y-%m-%d %H:%M:%S')] [MAKE] [$(MAKECMDGOALS)] $(1))
 endef
 
-# Shell-level logger (expands to a printf that runs in the shell)
+# Shell-level logger
 define shell-log
 printf "[%s] [MAKE] [$(MAKECMDGOALS)] $(1)\n" "$$(date '+%Y-%m-%d %H:%M:%S')"
 endef
@@ -38,7 +39,6 @@ env: ## Create .env file from template
 .PHONY: install-tools
 install-tools: ## Install required development tools
 	$(call make-log,Installing development tools...)
-	@# Check and install cargo-audit
 	@if ! command -v cargo-audit >/dev/null 2>&1; then \
 		$(call shell-log,Installing cargo-audit...); \
 		cargo install cargo-audit --locked; \
@@ -46,7 +46,6 @@ install-tools: ## Install required development tools
 	else \
 		$(call shell-log,cargo-audit already available: $$(cargo audit --version)); \
 	fi
-	@# Check and install cargo-deny
 	@if ! command -v cargo-deny >/dev/null 2>&1; then \
 		$(call shell-log,Installing cargo-deny...); \
 		cargo install cargo-deny --locked; \
@@ -65,7 +64,18 @@ check-env: ## Verify environment variables are set
 		$(call shell-log,RUNPOD_API_KEY is configured.); \
 	fi
 	@$(call shell-log,Base URL: $(RUNPOD_BASE_URL))
+	@$(call shell-log,GraphQL URL: $(RUNPOD_GRAPHQL_URL))
 	@$(call shell-log,Timeout: $(RUNPOD_TIMEOUT_SECS) seconds)
+
+.PHONY: build
+build: ## Build the project
+	$(call make-log,Building project...)
+	@cargo build
+
+.PHONY: build-release
+build-release: ## Build the project in release mode
+	$(call make-log,Building project in release mode...)
+	@cargo build --release
 
 .PHONY: test
 test: check-env ## Run all tests with environment loaded
@@ -82,13 +92,31 @@ test-integration: check-env ## Run integration tests (requires API key)
 	$(call make-log,Running integration tests...)
 	@cargo test --test '*' -- --test-threads=1
 
+.PHONY: test-doc
+test-doc: ## Run documentation tests (may require API key)
+	$(call make-log,Running documentation tests...)
+	@cargo test --doc
+
 .PHONY: examples
 examples: check-env ## Run all examples
 	$(call make-log,Running examples...)
-	@$(call shell-log,Running basic_usage example...)
-	@cargo run --example basic_usage
-	@$(call shell-log,Running manage_endpoints example...)
-	@cargo run --example manage_endpoints
+	@for example in basic_usage manage_endpoints manage_pods; do \
+		$(call shell-log,Running $$example example...); \
+		RUNPOD_API_KEY="$(RUNPOD_API_KEY)" \
+		RUNPOD_BASE_URL="$(RUNPOD_BASE_URL)" \
+		RUNPOD_GRAPHQL_URL="$(RUNPOD_GRAPHQL_URL)" \
+		RUNPOD_TIMEOUT_SECS="$(RUNPOD_TIMEOUT_SECS)" \
+		cargo run --example $$example || exit 1; \
+	done
+
+.PHONY: clippy
+clippy: ## Run clippy lints
+	$(call make-log,Running clippy...)
+	@RUNPOD_API_KEY="$(RUNPOD_API_KEY)" \
+	RUNPOD_BASE_URL="$(RUNPOD_BASE_URL)" \
+	RUNPOD_GRAPHQL_URL="$(RUNPOD_GRAPHQL_URL)" \
+	RUNPOD_TIMEOUT_SECS="$(RUNPOD_TIMEOUT_SECS)" \
+	cargo clippy --all-targets --all-features -- -D warnings
 
 .PHONY: security
 security: install-tools ## Run security audits
@@ -98,32 +126,17 @@ security: install-tools ## Run security audits
 	@$(call shell-log,Running cargo deny...)
 	@cargo deny check
 
-.PHONY: clean-env
-clean-env: ## Remove .env file
-	$(call make-log,Removing .env file...)
-	@if [ -f .env ]; then \
-		rm .env; \
-		$(call shell-log,.env file removed.); \
-	else \
-		$(call shell-log,.env file does not exist.); \
-	fi
-
-.PHONY: doc-test
-doc-test: ## Run documentation tests (may require API key)
-	$(call make-log,Running documentation tests...)
-	@cargo test --doc
+.PHONY: doc
+doc: ## Generate and open documentation
+	$(call make-log,Generating and opening documentation...)
+	@cargo doc --no-deps --open
 
 .PHONY: verify
-verify: ## Run core verification checks (no API key required)
-	$(call make-log,Running verification checks...)
-	@cargo fmt --check
-	@cargo clippy --all-targets --all-features -- -D warnings
-	@$(MAKE) test-lib
-	@$(MAKE) security
+verify: fmt-check clippy test-lib security ## Run core verification checks (no API key required)
 	$(call make-log,All verification checks passed!)
 
 .PHONY: verify-full
-verify-full: verify doc-test ## Run all verification checks including doctests
+verify-full: verify test-doc ## Run all verification checks including doctests
 	$(call make-log,All verification checks including doctests passed!)
 
 .PHONY: ci
@@ -131,12 +144,5 @@ ci: verify ## Run CI pipeline (no API key required)
 	$(call make-log,CI pipeline completed successfully!)
 
 .PHONY: dev
-dev: ## Development workflow: format, lint, and test
-	$(call make-log,Running development workflow...)
-	@cargo fmt
-	@cargo clippy --all-targets --all-features -- -D warnings
-	@$(MAKE) test
+dev: fmt clippy test ## Development workflow: format, lint, and test
 	$(call make-log,Development checks completed!)
-
-# Default target
-.DEFAULT_GOAL := help
