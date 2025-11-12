@@ -3,12 +3,15 @@
 #![doc = include_str!("../README.md")]
 
 mod client;
+#[cfg(feature = "endpoint")]
+#[cfg_attr(docsrs, doc(cfg(feature = "endpoint")))]
+pub mod endpoint;
 pub mod model;
 #[doc(hidden)]
 pub mod prelude;
 pub mod service;
 
-pub use client::{RunpodBuilder, RunpodClient, RunpodConfig, version};
+pub use client::{RunpodBuilder, RunpodClient, RunpodConfig};
 
 /// Tracing target for client-level operations (HTTP requests, client creation).
 #[cfg(feature = "tracing")]
@@ -39,7 +42,7 @@ pub use crate::client::RunpodBuilderError;
 ///
 /// ```no_run
 /// # use runpod_sdk::{Error, Result, RunpodClient};
-/// # use runpod_sdk::service::v1::PodsService;
+/// # use runpod_sdk::service::PodsService;
 /// # async fn example() -> Result<()> {
 /// let client: RunpodClient = RunpodClient::from_env()?;
 ///
@@ -66,8 +69,6 @@ pub enum Error {
     ///
     /// This occurs when the SDK fails to parse API responses or serialize
     /// request payloads to/from JSON.
-    #[cfg(feature = "graphql")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "graphql")))]
     #[error("Serialization error: {0}")]
     Serialization(#[from] serde_json::Error),
 
@@ -77,6 +78,12 @@ pub enum Error {
     /// the configuration builder and validation fails during the build process.
     #[error("Configuration error: {0}")]
     Config(#[from] RunpodBuilderError),
+
+    /// Job execution timeout.
+    ///
+    /// This occurs when a job exceeds the specified timeout duration.
+    #[error("Job timed out")]
+    Timeout,
 }
 
 /// Result type for RunPod API operations.

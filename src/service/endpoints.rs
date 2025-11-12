@@ -2,11 +2,11 @@ use std::future::Future;
 
 #[cfg(feature = "tracing")]
 use crate::TRACING_TARGET_SERVICE;
-use crate::model::v1::{
+use crate::model::{
     Endpoint, EndpointCreateInput, EndpointUpdateInput, Endpoints, GetEndpointQuery,
     ListEndpointsQuery,
 };
-use crate::version::V1;
+
 use crate::{Result, RunpodClient};
 
 /// Trait for managing serverless endpoints.
@@ -28,8 +28,8 @@ pub trait EndpointsService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::v1::EndpointCreateInput;
-    /// # use runpod_sdk::service::v1::EndpointsService;
+    /// # use runpod_sdk::model::EndpointCreateInput;
+    /// # use runpod_sdk::service::EndpointsService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::from_env()?;
     /// let client = RunpodClient::new(config)?;
@@ -64,8 +64,8 @@ pub trait EndpointsService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::v1::ListEndpointsQuery;
-    /// # use runpod_sdk::service::v1::EndpointsService;
+    /// # use runpod_sdk::model::ListEndpointsQuery;
+    /// # use runpod_sdk::service::EndpointsService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -97,8 +97,8 @@ pub trait EndpointsService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::v1::GetEndpointQuery;
-    /// # use runpod_sdk::service::v1::EndpointsService;
+    /// # use runpod_sdk::model::GetEndpointQuery;
+    /// # use runpod_sdk::service::EndpointsService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -136,8 +136,8 @@ pub trait EndpointsService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::v1::EndpointUpdateInput;
-    /// # use runpod_sdk::service::v1::EndpointsService;
+    /// # use runpod_sdk::model::EndpointUpdateInput;
+    /// # use runpod_sdk::service::EndpointsService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -170,7 +170,7 @@ pub trait EndpointsService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::service::v1::EndpointsService;
+    /// # use runpod_sdk::service::EndpointsService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -183,7 +183,7 @@ pub trait EndpointsService {
     fn delete_endpoint(&self, endpoint_id: &str) -> impl Future<Output = Result<()>>;
 }
 
-impl EndpointsService for RunpodClient<V1> {
+impl EndpointsService for RunpodClient {
     async fn create_endpoint(&self, input: EndpointCreateInput) -> Result<Endpoint> {
         #[cfg(feature = "tracing")]
         tracing::debug!(target: TRACING_TARGET_SERVICE, "Creating endpoint");

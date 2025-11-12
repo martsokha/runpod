@@ -1,8 +1,14 @@
 //! Endpoint management example.
-//! Run with: cargo run --example manage_endpoints
+//!
+//! # Usage
+//!
+//! ```bash
+//! export RUNPOD_API_KEY="your-api-key-here"
+//! cargo run --example manage_endpoints
+//! ```
 
-use runpod_sdk::model::v1::ListEndpointsQuery;
-use runpod_sdk::service::v1::EndpointsService;
+use runpod_sdk::model::ListEndpointsQuery;
+use runpod_sdk::service::EndpointsService;
 use runpod_sdk::{Result, RunpodClient};
 
 #[tokio::main]

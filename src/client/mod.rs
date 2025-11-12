@@ -8,7 +8,6 @@
 
 mod config;
 mod runpod;
-pub mod version;
 
 pub use config::{RunpodBuilder, RunpodBuilderError, RunpodConfig};
 pub use runpod::RunpodClient;

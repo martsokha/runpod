@@ -40,15 +40,21 @@ tracing = ["dep:tracing"]
 strum = ["dep:strum"]
 
 ## Enable GraphQL support
-graphql = ["dep:serde_json"]
+graphql = []
+
+## Enable endpoint runner support
+endpoint = []
 
 [dependencies]
 # HTTP client
 reqwest = { version = "0.12", features = ["json"], default-features = false }
 
+# Async utilities
+pin-project-lite = { version = "0.2" }
+
 # (De)serialization
 serde = { version = "1.0", features = ["derive"] }
-serde_json = { version = "1.0", features = [], optional = true }
+serde_json = { version = "1.0", features = [] }
 
 # Observability
 tracing = { version = "0.1", features = [], optional = true }

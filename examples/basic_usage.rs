@@ -1,8 +1,14 @@
 //! Basic usage example demonstrating simple queries.
-//! Run with: cargo run --example basic_usage
+//!
+//! # Usage
+//!
+//! ```bash
+//! export RUNPOD_API_KEY="your-api-key-here"
+//! cargo run --example basic_usage
+//! ```
 
-use runpod_sdk::model::v1::{ListEndpointsQuery, ListPodsQuery};
-use runpod_sdk::service::v1::{EndpointsService, PodsService, TemplatesService};
+use runpod_sdk::model::{ListEndpointsQuery, ListPodsQuery};
+use runpod_sdk::service::{EndpointsService, PodsService, TemplatesService};
 use runpod_sdk::{Result, RunpodClient};
 
 #[tokio::main]

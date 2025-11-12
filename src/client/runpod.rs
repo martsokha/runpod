@@ -9,7 +9,6 @@ use std::sync::Arc;
 use reqwest::{Client, RequestBuilder};
 
 use super::config::RunpodConfig;
-use super::version::{ApiVersion, V1};
 use crate::Result;
 #[cfg(feature = "tracing")]
 use crate::TRACING_TARGET_CLIENT;
@@ -31,12 +30,12 @@ use crate::TRACING_TARGET_CLIENT;
 ///
 /// The client implements V1 API service traits that provide direct access to API methods:
 ///
-/// - [`PodsService`](crate::service::v1::PodsService) - Pod lifecycle management
-/// - [`EndpointsService`](crate::service::v1::EndpointsService) - Serverless endpoint operations
-/// - [`TemplatesService`](crate::service::v1::TemplatesService) - Template creation and management
-/// - [`VolumesService`](crate::service::v1::VolumesService) - Network volume operations
-/// - [`RegistryService`](crate::service::v1::RegistryService) - Registry authentication
-/// - [`BillingService`](crate::service::v1::BillingService) - Usage and billing information
+/// - [`PodsService`](crate::service::PodsService) - Pod lifecycle management
+/// - [`EndpointsService`](crate::service::EndpointsService) - Serverless endpoint operations
+/// - [`TemplatesService`](crate::service::TemplatesService) - Template creation and management
+/// - [`VolumesService`](crate::service::VolumesService) - Network volume operations
+/// - [`RegistryService`](crate::service::RegistryService) - Registry authentication
+/// - [`BillingService`](crate::service::BillingService) - Usage and billing information
 ///
 /// # Examples
 ///
@@ -44,12 +43,11 @@ use crate::TRACING_TARGET_CLIENT;
 ///
 /// ```no_run
 /// use runpod_sdk::{RunpodClient, Result};
-/// use runpod_sdk::model::v1::ListPodsQuery;
-/// use runpod_sdk::service::v1::PodsService;
-/// use runpod_sdk::version::V1;
+/// use runpod_sdk::model::ListPodsQuery;
+/// use runpod_sdk::service::PodsService;
 ///
 /// # async fn example() -> Result<()> {
-/// let client = RunpodClient::<V1>::from_env()?;
+/// let client = RunpodClient::from_env()?;
 ///
 /// // List all pods
 /// let pods = client.list_pods(ListPodsQuery::default()).await?;
@@ -62,14 +60,13 @@ use crate::TRACING_TARGET_CLIENT;
 ///
 /// ```no_run
 /// use runpod_sdk::{RunpodConfig, RunpodClient, Result};
-/// use runpod_sdk::service::v1::{PodsService, EndpointsService, TemplatesService};
-/// use runpod_sdk::version::V1;
+/// use runpod_sdk::service::{PodsService, EndpointsService, TemplatesService};
 /// use std::time::Duration;
 ///
 /// # async fn example() -> Result<()> {
-/// let client = RunpodConfig::<V1>::builder()
+/// let client = RunpodConfig::builder()
 ///     .with_api_key("your-api-key")
-///     .with_base_url("https://api.runpod.io/v1")
+///     .with_rest_url("https://rest.runpod.io/v1")
 ///     .with_timeout(Duration::from_secs(30))
 ///     .build_client()?;
 ///
@@ -87,7 +84,7 @@ use crate::TRACING_TARGET_CLIENT;
 ///
 /// ```no_run
 /// use runpod_sdk::{RunpodClient, Result};
-/// use runpod_sdk::service::v1::PodsService;
+/// use runpod_sdk::service::PodsService;
 /// use tokio::task;
 ///
 /// # async fn example() -> Result<()> {
@@ -109,18 +106,18 @@ use crate::TRACING_TARGET_CLIENT;
 /// # }
 /// ```
 #[derive(Clone)]
-pub struct RunpodClient<V: ApiVersion = V1> {
-    inner: Arc<RunpodClientInner<V>>,
+pub struct RunpodClient {
+    pub(crate) inner: Arc<RunpodClientInner>,
 }
 
 /// Inner client state that is shared via Arc for cheap cloning.
 #[derive(Debug)]
-struct RunpodClientInner<V: ApiVersion> {
-    config: RunpodConfig<V>,
-    client: Client,
+pub(crate) struct RunpodClientInner {
+    pub(crate) config: RunpodConfig,
+    pub(crate) client: Client,
 }
 
-impl<V: ApiVersion> RunpodClient<V> {
+impl RunpodClient {
     /// Creates a new Runpod API client.
     #[cfg_attr(
         feature = "tracing",
@@ -130,7 +127,7 @@ impl<V: ApiVersion> RunpodClient<V> {
             fields(api_key = %config.masked_api_key())
         )
     )]
-    pub fn new(config: RunpodConfig<V>) -> Result<Self> {
+    pub fn new(config: RunpodConfig) -> Result<Self> {
         #[cfg(feature = "tracing")]
         tracing::debug!(target: TRACING_TARGET_CLIENT, "Creating RunPod client");
 
@@ -138,7 +135,7 @@ impl<V: ApiVersion> RunpodClient<V> {
 
         #[cfg(feature = "tracing")]
         tracing::info!(target: TRACING_TARGET_CLIENT,
-            base_url = %config.base_url(),
+            rest_url = %config.rest_url(),
             timeout = ?config.timeout(),
             api_key = %config.masked_api_key(),
             "RunPod client created successfully"
@@ -146,6 +143,68 @@ impl<V: ApiVersion> RunpodClient<V> {
 
         let inner = Arc::new(RunpodClientInner { config, client });
         Ok(Self { inner })
+    }
+
+    /// Makes a GET request to the API endpoint URL (not GraphQL).
+    ///
+    /// This is a low-level method for making GET requests to the RunPod API.
+    /// The path should be relative to the API base URL (e.g., "endpoint_id/status/job_id").
+    #[cfg(feature = "endpoint")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "endpoint")))]
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(
+            skip(self),
+            target = TRACING_TARGET_CLIENT,
+            fields(method = "GET", path, url)
+        )
+    )]
+    pub(crate) fn get_api(&self, path: &str) -> RequestBuilder {
+        let url = format!("{}/{}", self.inner.config.api_url(), path);
+
+        #[cfg(feature = "tracing")]
+        tracing::trace!(target: TRACING_TARGET_CLIENT,
+            url = %url,
+            method = "GET",
+            "Creating HTTP GET request to API"
+        );
+
+        self.inner
+            .client
+            .get(&url)
+            .bearer_auth(self.inner.config.api_key())
+            .timeout(self.inner.config.timeout())
+    }
+
+    /// Makes a POST request to the API endpoint URL (not GraphQL).
+    ///
+    /// This is a low-level method for making POST requests to the RunPod API.
+    /// The path should be relative to the API base URL (e.g., "endpoint_id/run").
+    #[cfg(feature = "endpoint")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "endpoint")))]
+    #[cfg_attr(
+        feature = "tracing",
+        tracing::instrument(
+            skip(self),
+            target = TRACING_TARGET_CLIENT,
+            fields(method = "POST", path, url)
+        )
+    )]
+    pub(crate) fn post_api(&self, path: &str) -> RequestBuilder {
+        let url = format!("{}/{}", self.inner.config.api_url(), path);
+
+        #[cfg(feature = "tracing")]
+        tracing::trace!(target: TRACING_TARGET_CLIENT,
+            url = %url,
+            method = "POST",
+            "Creating HTTP POST request to API"
+        );
+
+        self.inner
+            .client
+            .post(&url)
+            .bearer_auth(self.inner.config.api_key())
+            .timeout(self.inner.config.timeout())
     }
 
     /// Creates a GET request.
@@ -158,7 +217,7 @@ impl<V: ApiVersion> RunpodClient<V> {
         )
     )]
     pub(crate) fn get(&self, path: &str) -> RequestBuilder {
-        let url = format!("{}{}", self.inner.config.base_url(), path);
+        let url = format!("{}{}", self.inner.config.rest_url(), path);
 
         #[cfg(feature = "tracing")]
         tracing::trace!(target: TRACING_TARGET_CLIENT,
@@ -184,7 +243,7 @@ impl<V: ApiVersion> RunpodClient<V> {
         )
     )]
     pub(crate) fn post(&self, path: &str) -> RequestBuilder {
-        let url = format!("{}{}", self.inner.config.base_url(), path);
+        let url = format!("{}{}", self.inner.config.rest_url(), path);
 
         #[cfg(feature = "tracing")]
         tracing::trace!(target: TRACING_TARGET_CLIENT,
@@ -210,7 +269,7 @@ impl<V: ApiVersion> RunpodClient<V> {
         )
     )]
     pub(crate) fn patch(&self, path: &str) -> RequestBuilder {
-        let url = format!("{}{}", self.inner.config.base_url(), path);
+        let url = format!("{}{}", self.inner.config.rest_url(), path);
 
         #[cfg(feature = "tracing")]
         tracing::trace!(target: TRACING_TARGET_CLIENT,
@@ -236,7 +295,7 @@ impl<V: ApiVersion> RunpodClient<V> {
         )
     )]
     pub(crate) fn delete(&self, path: &str) -> RequestBuilder {
-        let url = format!("{}{}", self.inner.config.base_url(), path);
+        let url = format!("{}{}", self.inner.config.rest_url(), path);
 
         #[cfg(feature = "tracing")]
         tracing::trace!(target: TRACING_TARGET_CLIENT,
@@ -323,9 +382,7 @@ impl<V: ApiVersion> RunpodClient<V> {
         let result = response.json().await?;
         Ok(result)
     }
-}
 
-impl RunpodClient<V1> {
     /// Creates a new Runpod API client from environment variables.
     ///
     /// This is a convenience method that creates a RunpodConfig from environment
@@ -341,9 +398,8 @@ impl RunpodClient<V1> {
     /// # Example
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, Result};
-    /// # use runpod_sdk::version::V1;
     /// # async fn example() -> Result<()> {
-    /// let client = RunpodClient::<V1>::from_env()?;
+    /// let client = RunpodClient::from_env()?;
     /// # Ok(())
     /// # }
     /// ```
@@ -357,12 +413,12 @@ impl RunpodClient<V1> {
     }
 }
 
-impl<V: ApiVersion> fmt::Debug for RunpodClient<V> {
+impl fmt::Debug for RunpodClient {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut debug_struct = f.debug_struct("RunpodClient");
         debug_struct
             .field("api_key", &self.inner.config.masked_api_key())
-            .field("base_url", &self.inner.config.base_url())
+            .field("rest_url", &self.inner.config.rest_url())
             .field("timeout", &self.inner.config.timeout());
 
         #[cfg(feature = "graphql")]

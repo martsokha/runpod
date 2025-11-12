@@ -1,8 +1,14 @@
 //! Pod lifecycle management example.
-//! Run with: cargo run --example manage_pods
+//!
+//! # Usage
+//!
+//! ```bash
+//! export RUNPOD_API_KEY="your-api-key-here"
+//! cargo run --example manage_pods
+//! ```
 
-use runpod_sdk::model::v1::{CloudType, ListPodsQuery, PodCreateInput, PodUpdateInput};
-use runpod_sdk::service::v1::PodsService;
+use runpod_sdk::model::{CloudType, ListPodsQuery, PodCreateInput, PodUpdateInput};
+use runpod_sdk::service::PodsService;
 use runpod_sdk::{Result, RunpodClient};
 
 #[tokio::main]
