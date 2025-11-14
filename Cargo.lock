@@ -847,6 +847,7 @@ name = "runpod-sdk"
 version = "0.1.0"
 dependencies = [
  "derive_builder",
+ "pin-project-lite",
  "reqwest",
  "serde",
  "serde_json",

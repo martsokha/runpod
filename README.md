@@ -34,17 +34,17 @@ runpod-sdk = { version = "0.1", features = [] }
 
 ```rust,no_run
 use runpod_sdk::{RunpodConfig, Result};
-use runpod_sdk::model::v1::ListPodsQuery;
-use runpod_sdk::service::v1::PodsService;
+use runpod_sdk::model::ListPodsQuery;
+use runpod_sdk::service::PodsService;
 use std::time::Duration;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let client = RunpodConfig::builder()
         .with_api_key("your-api-key")
-        .with_base_url("https://api.runpod.io/v1")
+        .with_rest_url("https://rest.runpod.io/v1")
         .with_timeout(Duration::from_secs(60))
-        .build_v1()?;
+        .build_client()?;
 
     let pods = client.list_pods(ListPodsQuery::default()).await?;
     println!("Found {} pods", pods.len());
@@ -57,12 +57,13 @@ async fn main() -> Result<()> {
 
 The SDK can be configured using environment variables:
 
-| Variable              | Required | Default                         | Description                                                                              |
-| --------------------- | -------- | ------------------------------- | ---------------------------------------------------------------------------------------- |
-| `RUNPOD_API_KEY`      | Yes      | -                               | Your RunPod API key from [console settings](https://www.runpod.io/console/user/settings) |
-| `RUNPOD_BASE_URL`     | No       | `https://rest.runpod.io/v1`     | Custom REST API base URL                                                                 |
-| `RUNPOD_GRAPHQL_URL`  | No       | `https://api.runpod.io/graphql` | Custom GraphQL API URL (requires `graphql` feature)                                      |
-| `RUNPOD_TIMEOUT_SECS` | No       | `30`                            | Request timeout in seconds (max: 300)                                                    |
+| Variable               | Required | Default                         | Description                                                                              |
+| ---------------------- | -------- | ------------------------------- | ---------------------------------------------------------------------------------------- |
+| `RUNPOD_API_KEY`       | Yes      | -                               | Your RunPod API key from [console settings](https://www.runpod.io/console/user/settings) |
+| `RUNPOD_REST_URL`      | No       | `https://rest.runpod.io/v1`     | Custom REST API base URL                                                                 |
+| `RUNPOD_API_URL`       | No       | `https://api.runpod.io/v2`      | Custom API URL for serverless endpoints (requires `serverless` feature)                  |
+| `RUNPOD_GRAPHQL_URL`   | No       | `https://api.runpod.io/graphql` | Custom GraphQL API URL (requires `graphql` feature)                                      |
+| `RUNPOD_TIMEOUT_SECS`  | No       | `30`                            | Request timeout in seconds (max: 300)                                                    |
 
 ```rust,no_run
 use runpod_sdk::{RunpodClient, Result};

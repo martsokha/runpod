@@ -1,11 +1,18 @@
-//! RunPod API service traits.
+//! RunPod API services.
 //!
-//! This module contains trait definitions for all RunPod API services.
-//! Services are organized by API version in submodules to support future API versioning
-//! while maintaining backward compatibility.
-//!
-//! All V1 traits are implemented on [`RunpodClient<V1>`](crate::RunpodClient) providing direct access to API methods.
-//!
-//! [`RunpodClient`]: crate::RunpodClient
+//! This module contains all service trait implementations for the RunPod API.
+//! Services provide the primary interface for interacting with RunPod resources.
 
-pub mod v1;
+mod billing;
+mod endpoints;
+mod pods;
+mod registry;
+mod templates;
+mod volumes;
+
+pub use billing::*;
+pub use endpoints::*;
+pub use pods::*;
+pub use registry::*;
+pub use templates::*;
+pub use volumes::*;

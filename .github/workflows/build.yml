@@ -54,11 +54,11 @@ jobs:
         with:
           shared-key: ${{ runner.os }}-${{ matrix.rust }}
 
-      - name: Run tests
+      - name: Run tests (all features)
         run: cargo test --all-features
 
       - name: Run tests (no default features)
-        run: cargo test --no-default-features
+        run: cargo test --no-default-features --features rustls-tls
 
   fmt:
     name: Format

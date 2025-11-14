@@ -178,7 +178,7 @@ pub type Templates = Vec<Template>;
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::v1::{TemplateCreateInput, TemplateCategory};
+/// use runpod_sdk::model::{TemplateCreateInput, TemplateCategory};
 ///
 /// let basic_template = TemplateCreateInput {
 ///     name: "My Basic Template".to_string(),
@@ -294,7 +294,7 @@ pub struct TemplateCreateInput {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::v1::TemplateUpdateInput;
+/// use runpod_sdk::model::TemplateUpdateInput;
 ///
 /// // Update only the Docker image
 /// let image_update = TemplateUpdateInput {
@@ -401,7 +401,7 @@ pub struct TemplateUpdateInput {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::v1::ListTemplatesQuery;
+/// use runpod_sdk::model::ListTemplatesQuery;
 ///
 /// // Get all available templates (private + public + official)
 /// let all_templates = ListTemplatesQuery {
@@ -453,7 +453,7 @@ pub struct ListTemplatesQuery {
 /// # Examples
 ///
 /// ```rust
-/// use runpod_sdk::model::v1::GetTemplateQuery;
+/// use runpod_sdk::model::GetTemplateQuery;
 ///
 /// // Access any type of template
 /// let query = GetTemplateQuery {

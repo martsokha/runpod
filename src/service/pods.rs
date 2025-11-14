@@ -1,13 +1,15 @@
 use std::future::Future;
 
-use crate::model::v1::{GetPodQuery, ListPodsQuery, Pod, PodCreateInput, PodUpdateInput, Pods};
-use crate::version::V1;
+#[cfg(feature = "tracing")]
+use crate::TRACING_TARGET_SERVICE;
+use crate::model::{GetPodQuery, ListPodsQuery, Pod, PodCreateInput, PodUpdateInput, Pods};
+
 use crate::{Result, RunpodClient};
 
 /// Trait for managing pods (V1 API).
 ///
 /// Provides methods for creating, listing, retrieving, updating, and controlling pods.
-/// This trait is implemented on [`RunpodClient<V1>`](crate::RunpodClient).
+/// This trait is implemented on [`RunpodClient`](crate::RunpodClient).
 pub trait PodsService {
     /// Creates a new pod.
     ///
@@ -23,8 +25,8 @@ pub trait PodsService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::v1::PodCreateInput;
-    /// # use runpod_sdk::service::v1::PodsService;
+    /// # use runpod_sdk::model::PodCreateInput;
+    /// # use runpod_sdk::service::PodsService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -56,8 +58,8 @@ pub trait PodsService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::v1::ListPodsQuery;
-    /// # use runpod_sdk::service::v1::PodsService;
+    /// # use runpod_sdk::model::ListPodsQuery;
+    /// # use runpod_sdk::service::PodsService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -89,8 +91,8 @@ pub trait PodsService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::v1::GetPodQuery;
-    /// # use runpod_sdk::service::v1::PodsService;
+    /// # use runpod_sdk::model::GetPodQuery;
+    /// # use runpod_sdk::service::PodsService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -122,8 +124,8 @@ pub trait PodsService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::v1::PodUpdateInput;
-    /// # use runpod_sdk::service::v1::PodsService;
+    /// # use runpod_sdk::model::PodUpdateInput;
+    /// # use runpod_sdk::service::PodsService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -150,7 +152,7 @@ pub trait PodsService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::service::v1::PodsService;
+    /// # use runpod_sdk::service::PodsService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -172,7 +174,7 @@ pub trait PodsService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::service::v1::PodsService;
+    /// # use runpod_sdk::service::PodsService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -194,7 +196,7 @@ pub trait PodsService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::service::v1::PodsService;
+    /// # use runpod_sdk::service::PodsService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -218,7 +220,7 @@ pub trait PodsService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::service::v1::PodsService;
+    /// # use runpod_sdk::service::PodsService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -242,7 +244,7 @@ pub trait PodsService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::service::v1::PodsService;
+    /// # use runpod_sdk::service::PodsService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -255,60 +257,132 @@ pub trait PodsService {
     fn restart_pod(&self, pod_id: &str) -> impl Future<Output = Result<()>>;
 }
 
-impl PodsService for RunpodClient<V1> {
+impl PodsService for RunpodClient {
     async fn create_pod(&self, input: PodCreateInput) -> Result<Pod> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Creating pod");
+
         let response = self.post("/pods").json(&input).send().await?;
-        let pod = response.json().await?;
+        let response = response.error_for_status()?;
+        let pod: Pod = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, pod_id = %pod.id, "Pod created successfully");
+
         Ok(pod)
     }
 
     async fn list_pods(&self, query: ListPodsQuery) -> Result<Pods> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Listing pods");
+
         let response = self.get("/pods").query(&query).send().await?;
-        let pods = response.json().await?;
+        let response = response.error_for_status()?;
+        let pods: Pods = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, count = pods.len(), "Pods retrieved successfully");
+
         Ok(pods)
     }
 
     async fn get_pod(&self, pod_id: &str, query: GetPodQuery) -> Result<Pod> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, pod_id, "Getting pod");
+
         let path = format!("/pods/{}", pod_id);
         let response = self.get(&path).query(&query).send().await?;
-        let pod = response.json().await?;
+        let response = response.error_for_status()?;
+        let pod: Pod = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Pod retrieved successfully");
+
         Ok(pod)
     }
 
     async fn update_pod(&self, pod_id: &str, input: PodUpdateInput) -> Result<Pod> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, pod_id, "Updating pod");
+
         let path = format!("/pods/{}", pod_id);
         let response = self.patch(&path).json(&input).send().await?;
-        let pod = response.json().await?;
+        let response = response.error_for_status()?;
+        let pod: Pod = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Pod updated successfully");
+
         Ok(pod)
     }
 
     async fn delete_pod(&self, pod_id: &str) -> Result<()> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, pod_id, "Deleting pod");
+
         let path = format!("/pods/{}", pod_id);
-        self.delete(&path).send().await?;
+        let response = self.delete(&path).send().await?;
+        response.error_for_status()?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Pod deleted successfully");
+
         Ok(())
     }
 
     async fn start_pod(&self, pod_id: &str) -> Result<()> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, pod_id, "Starting pod");
+
         let path = format!("/pods/{}/start", pod_id);
-        self.post(&path).send().await?;
+        let response = self.post(&path).send().await?;
+        response.error_for_status()?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Pod started successfully");
+
         Ok(())
     }
 
     async fn stop_pod(&self, pod_id: &str) -> Result<()> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, pod_id, "Stopping pod");
+
         let path = format!("/pods/{}/stop", pod_id);
-        self.post(&path).send().await?;
+        let response = self.post(&path).send().await?;
+        response.error_for_status()?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Pod stopped successfully");
+
         Ok(())
     }
 
     async fn reset_pod(&self, pod_id: &str) -> Result<()> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, pod_id, "Resetting pod");
+
         let path = format!("/pods/{}/reset", pod_id);
-        self.post(&path).send().await?;
+        let response = self.post(&path).send().await?;
+        response.error_for_status()?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Pod reset successfully");
+
         Ok(())
     }
 
     async fn restart_pod(&self, pod_id: &str) -> Result<()> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, pod_id, "Restarting pod");
+
         let path = format!("/pods/{}/restart", pod_id);
-        self.post(&path).send().await?;
+        let response = self.post(&path).send().await?;
+        response.error_for_status()?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Pod restarted successfully");
+
         Ok(())
     }
 }

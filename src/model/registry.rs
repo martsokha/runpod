@@ -50,7 +50,7 @@ pub type ContainerRegistryAuths = Vec<ContainerRegistryAuth>;
 ///
 /// ## Docker Hub
 /// ```rust
-/// # use runpod_sdk::model::v1::ContainerRegistryAuthCreateInput;
+/// # use runpod_sdk::model::ContainerRegistryAuthCreateInput;
 /// let docker_hub_auth = ContainerRegistryAuthCreateInput {
 ///     name: "dockerhub-production".to_string(),
 ///     username: "myusername".to_string(),
@@ -60,7 +60,7 @@ pub type ContainerRegistryAuths = Vec<ContainerRegistryAuth>;
 ///
 /// ## AWS ECR
 /// ```rust
-/// # use runpod_sdk::model::v1::ContainerRegistryAuthCreateInput;
+/// # use runpod_sdk::model::ContainerRegistryAuthCreateInput;
 /// let ecr_auth = ContainerRegistryAuthCreateInput {
 ///     name: "aws-ecr-us-west-2".to_string(),
 ///     username: "AWS".to_string(),
@@ -70,7 +70,7 @@ pub type ContainerRegistryAuths = Vec<ContainerRegistryAuth>;
 ///
 /// ## GitHub Container Registry
 /// ```rust
-/// # use runpod_sdk::model::v1::ContainerRegistryAuthCreateInput;
+/// # use runpod_sdk::model::ContainerRegistryAuthCreateInput;
 /// let ghcr_auth = ContainerRegistryAuthCreateInput {
 ///     name: "github-packages".to_string(),
 ///     username: "myusername".to_string(),

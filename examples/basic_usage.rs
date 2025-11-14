@@ -1,20 +1,18 @@
-//! Basic usage example demonstrating simple queries across multiple RunPod services.
+//! Basic usage example demonstrating simple queries.
 //!
-//! This example shows how to:
-//! - Create a client from environment variables
-//! - List pods with query parameters
-//! - List serverless endpoints
-//! - List templates
+//! # Usage
 //!
-//! Run with: cargo run --example basic_usage
+//! ```bash
+//! export RUNPOD_API_KEY="your-api-key-here"
+//! cargo run --example basic_usage
+//! ```
 
-use runpod_sdk::model::v1::ListPodsQuery;
-use runpod_sdk::service::v1::{EndpointsService, PodsService, TemplatesService};
+use runpod_sdk::model::{ListEndpointsQuery, ListPodsQuery};
+use runpod_sdk::service::{EndpointsService, PodsService, TemplatesService};
 use runpod_sdk::{Result, RunpodClient};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Create client from RUNPOD_API_KEY environment variable
     let client = RunpodClient::from_env()?;
 
     // List all pods
@@ -23,6 +21,7 @@ async fn main() -> Result<()> {
         include_machine: Some(true),
         ..Default::default()
     };
+
     let pods = client.list_pods(query).await?;
     println!("Found {} pods", pods.len());
 
@@ -36,7 +35,7 @@ async fn main() -> Result<()> {
 
     // List endpoints
     println!("\nListing endpoints...");
-    let endpoints = client.list_endpoints(Default::default()).await?;
+    let endpoints = client.list_endpoints(ListEndpointsQuery::default()).await?;
     println!("Found {} endpoints", endpoints.len());
 
     for endpoint in &endpoints {

@@ -42,9 +42,13 @@ strum = ["dep:strum"]
 ## Enable GraphQL support
 graphql = ["dep:serde_json"]
 
+## Enable serverless runner support
+serverless = ["dep:serde_json", "dep:pin-project-lite"]
+
 [dependencies]
 # HTTP client
 reqwest = { version = "0.12", features = ["json"], default-features = false }
+pin-project-lite = { version = "0.2", optional = true }
 
 # (De)serialization
 serde = { version = "1.0", features = ["derive"] }
@@ -60,3 +64,7 @@ derive_builder = { version = "0.20", features = [] }
 
 [dev-dependencies]
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
+
+[[example]]
+name = "run_endpoint"
+required-features = ["serverless"]

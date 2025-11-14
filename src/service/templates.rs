@@ -1,10 +1,12 @@
 use std::future::Future;
 
-use crate::model::v1::{
+#[cfg(feature = "tracing")]
+use crate::TRACING_TARGET_SERVICE;
+use crate::model::{
     GetTemplateQuery, ListTemplatesQuery, Template, TemplateCreateInput, TemplateUpdateInput,
     Templates,
 };
-use crate::version::V1;
+
 use crate::{Result, RunpodClient};
 
 /// Trait for managing templates.
@@ -26,8 +28,8 @@ pub trait TemplatesService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::v1::TemplateCreateInput;
-    /// # use runpod_sdk::service::v1::TemplatesService;
+    /// # use runpod_sdk::model::TemplateCreateInput;
+    /// # use runpod_sdk::service::TemplatesService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::from_env()?;
     /// let client = RunpodClient::new(config)?;
@@ -71,8 +73,8 @@ pub trait TemplatesService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::v1::ListTemplatesQuery;
-    /// # use runpod_sdk::service::v1::TemplatesService;
+    /// # use runpod_sdk::model::ListTemplatesQuery;
+    /// # use runpod_sdk::service::TemplatesService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -104,8 +106,8 @@ pub trait TemplatesService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::v1::GetTemplateQuery;
-    /// # use runpod_sdk::service::v1::TemplatesService;
+    /// # use runpod_sdk::model::GetTemplateQuery;
+    /// # use runpod_sdk::service::TemplatesService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -138,8 +140,8 @@ pub trait TemplatesService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::v1::TemplateUpdateInput;
-    /// # use runpod_sdk::service::v1::TemplatesService;
+    /// # use runpod_sdk::model::TemplateUpdateInput;
+    /// # use runpod_sdk::service::TemplatesService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -172,7 +174,7 @@ pub trait TemplatesService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::service::v1::TemplatesService;
+    /// # use runpod_sdk::service::TemplatesService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -185,23 +187,47 @@ pub trait TemplatesService {
     fn delete_template(&self, template_id: &str) -> impl Future<Output = Result<()>>;
 }
 
-impl TemplatesService for RunpodClient<V1> {
+impl TemplatesService for RunpodClient {
     async fn create_template(&self, input: TemplateCreateInput) -> Result<Template> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Creating template");
+
         let response = self.post("/templates").json(&input).send().await?;
-        let template = response.json().await?;
+        let response = response.error_for_status()?;
+        let template: Template = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, template_id = %template.id, "Template created successfully");
+
         Ok(template)
     }
 
     async fn list_templates(&self, query: ListTemplatesQuery) -> Result<Templates> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Listing templates");
+
         let response = self.get("/templates").query(&query).send().await?;
-        let templates = response.json().await?;
+        let response = response.error_for_status()?;
+        let templates: Templates = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, count = templates.len(), "Templates retrieved successfully");
+
         Ok(templates)
     }
 
     async fn get_template(&self, template_id: &str, query: GetTemplateQuery) -> Result<Template> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Getting template");
+
         let path = format!("/templates/{}", template_id);
         let response = self.get(&path).query(&query).send().await?;
-        let template = response.json().await?;
+        let response = response.error_for_status()?;
+        let template: Template = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Template retrieved successfully");
+
         Ok(template)
     }
 
@@ -210,15 +236,31 @@ impl TemplatesService for RunpodClient<V1> {
         template_id: &str,
         input: TemplateUpdateInput,
     ) -> Result<Template> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Updating template");
+
         let path = format!("/templates/{}", template_id);
         let response = self.patch(&path).json(&input).send().await?;
-        let template = response.json().await?;
+        let response = response.error_for_status()?;
+        let template: Template = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Template updated successfully");
+
         Ok(template)
     }
 
     async fn delete_template(&self, template_id: &str) -> Result<()> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Deleting template");
+
         let path = format!("/templates/{}", template_id);
-        self.delete(&path).send().await?;
+        let response = self.delete(&path).send().await?;
+        response.error_for_status()?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Template deleted successfully");
+
         Ok(())
     }
 }

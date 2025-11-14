@@ -9,8 +9,9 @@ use std::time::Duration;
 use derive_builder::Builder;
 
 use crate::Result;
+#[cfg(feature = "tracing")]
+use crate::TRACING_TARGET_CONFIG;
 use crate::client::RunpodClient;
-use crate::version::ApiVersion;
 
 /// Configuration for the Runpod API client.
 ///
@@ -42,7 +43,7 @@ use crate::version::ApiVersion;
 /// # use std::time::Duration;
 /// let config = RunpodConfig::builder()
 ///     .with_api_key("your-api-key")
-///     .with_base_url("https://custom.api.com")
+///     .with_rest_url("https://custom.api.com")
 ///     .with_timeout(Duration::from_secs(60))
 ///     .build()
 ///     .unwrap();
@@ -60,11 +61,19 @@ pub struct RunpodConfig {
     /// You can obtain your API key from the Runpod dashboard.
     api_key: String,
 
-    /// Base URL for the Runpod API.
+    /// Base REST URL for the Runpod API.
+    ///
+    /// Defaults to the official Runpod REST API endpoint.
+    #[builder(default = "Self::default_rest_url()")]
+    rest_url: String,
+
+    /// Base API URL for the Runpod serverless endpoints.
     ///
     /// Defaults to the official Runpod API endpoint.
-    #[builder(default = "Self::default_base_url()")]
-    base_url: String,
+    #[cfg(feature = "serverless")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "serverless")))]
+    #[builder(default = "Self::default_api_url()")]
+    api_url: String,
 
     /// Base GraphQL URL for the Runpod API.
     ///
@@ -82,9 +91,16 @@ pub struct RunpodConfig {
 }
 
 impl RunpodBuilder {
-    /// Returns the default base URL for the Runpod API.
-    fn default_base_url() -> String {
+    /// Returns the default REST URL for the Runpod API.
+    fn default_rest_url() -> String {
         "https://rest.runpod.io/v1".to_string()
+    }
+
+    /// Returns the default API URL for the Runpod serverless endpoints.
+    #[cfg(feature = "serverless")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "serverless")))]
+    fn default_api_url() -> String {
+        "https://api.runpod.io/v2".to_string()
     }
 
     /// Returns the default base GraphQL URL for the Runpod API.
@@ -120,6 +136,26 @@ impl RunpodBuilder {
 
         Ok(())
     }
+
+    /// Creates a RunPod API client directly from the builder.
+    ///
+    /// This is a convenience method that builds the configuration and
+    /// creates a client in one step. This is the recommended way to
+    /// create a client.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use runpod_sdk::RunpodConfig;
+    /// let client = RunpodConfig::builder()
+    ///     .with_api_key("your-api-key")
+    ///     .build_client()
+    ///     .unwrap();
+    /// ```
+    pub fn build_client(self) -> Result<RunpodClient> {
+        let config = self.build()?;
+        RunpodClient::new(config)
+    }
 }
 
 impl RunpodConfig {
@@ -140,86 +176,7 @@ impl RunpodConfig {
         RunpodBuilder::default()
     }
 
-    /// Creates a configuration from environment variables.
-    ///
-    /// Reads the API key from the `RUNPOD_API_KEY` environment variable.
-    /// Optionally reads `RUNPOD_BASE_URL`, `RUNPOD_GRAPHQL_URL` (with graphql feature), and `RUNPOD_TIMEOUT_SECS` if set.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if:
-    /// - The `RUNPOD_API_KEY` environment variable is not set
-    /// - Any environment variable contains an invalid value
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// # use runpod_sdk::RunpodConfig;
-    /// // Set environment variable first:
-    /// // export RUNPOD_API_KEY=your-api-key
-    /// let config = RunpodConfig::from_env().unwrap();
-    /// ```
-    pub fn from_env() -> Result<Self> {
-        let api_key = std::env::var("RUNPOD_API_KEY").map_err(|_| {
-            RunpodBuilderError::ValidationError(
-                "RUNPOD_API_KEY environment variable not set".to_string(),
-            )
-        })?;
-
-        let mut builder = Self::builder().with_api_key(api_key);
-
-        // Optional: custom base URL
-        if let Ok(base_url) = std::env::var("RUNPOD_BASE_URL") {
-            builder = builder.with_base_url(base_url);
-        }
-
-        // Optional: custom GraphQL URL
-        #[cfg(feature = "graphql")]
-        if let Ok(graphql_url) = std::env::var("RUNPOD_GRAPHQL_URL") {
-            builder = builder.with_graphql_url(graphql_url);
-        }
-
-        // Optional: custom timeout
-        if let Ok(timeout_str) = std::env::var("RUNPOD_TIMEOUT_SECS") {
-            let timeout_secs = timeout_str.parse::<u64>().map_err(|_| {
-                RunpodBuilderError::ValidationError(format!(
-                    "Invalid RUNPOD_TIMEOUT_SECS value: {}",
-                    timeout_str
-                ))
-            })?;
-            builder = builder.with_timeout(Duration::from_secs(timeout_secs));
-        }
-
-        builder.build().map_err(Into::into)
-    }
-
-    /// Creates a new RunPod client with a specific API version.
-    ///
-    /// This is a lower-level method that allows specifying the API version type parameter.
-    /// For most use cases, use [`build_v1`](Self::build_v1) instead.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// # use runpod_sdk::RunpodConfig;
-    /// # use runpod_sdk::version::V1;
-    /// let config = RunpodConfig::builder()
-    ///     .with_api_key("your-api-key")
-    ///     .build()
-    ///     .unwrap();
-    ///
-    /// let client = config.build_v::<V1>().unwrap();
-    /// ```
-    pub fn build_v<V>(self) -> Result<RunpodClient<V>>
-    where
-        V: ApiVersion,
-    {
-        RunpodClient::new(self)
-    }
-
-    /// Creates a new RunPod V1 API client using this configuration.
-    ///
-    /// This is the recommended method for creating a client. It defaults to the V1 API.
+    /// Creates a new RunPod API client using this configuration.
     ///
     /// # Examples
     ///
@@ -230,9 +187,9 @@ impl RunpodConfig {
     ///     .build()
     ///     .unwrap();
     ///
-    /// let client = config.build_v1().unwrap();
+    /// let client = config.build_client().unwrap();
     /// ```
-    pub fn build_v1(self) -> Result<RunpodClient> {
+    pub fn build_client(self) -> Result<RunpodClient> {
         RunpodClient::new(self)
     }
 
@@ -253,9 +210,16 @@ impl RunpodConfig {
         }
     }
 
-    /// Returns the base URL.
-    pub fn base_url(&self) -> &str {
-        &self.base_url
+    /// Returns the base REST URL.
+    pub fn rest_url(&self) -> &str {
+        &self.rest_url
+    }
+
+    /// Returns the API URL for serverless endpoints.
+    #[cfg(feature = "serverless")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "serverless")))]
+    pub fn api_url(&self) -> &str {
+        &self.api_url
     }
 
     /// Returns the base GraphQL URL.
@@ -269,50 +233,110 @@ impl RunpodConfig {
     pub fn timeout(&self) -> Duration {
         self.timeout
     }
-}
 
-impl RunpodBuilder {
-    /// Creates a RunPod V1 API client directly from the builder.
+    /// Creates a configuration from environment variables.
     ///
-    /// This is a convenience method that builds the configuration and
-    /// creates a V1 client in one step. This is the recommended way to
-    /// create a client.
+    /// Reads the API key from the `RUNPOD_API_KEY` environment variable.
+    /// Optionally reads `RUNPOD_REST_URL`, `RUNPOD_API_URL` (with serverless feature),
+    /// `RUNPOD_GRAPHQL_URL` (with graphql feature), and `RUNPOD_TIMEOUT_SECS` if set.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// - The `RUNPOD_API_KEY` environment variable is not set
+    /// - Any environment variable contains an invalid value
     ///
     /// # Examples
     ///
     /// ```no_run
     /// # use runpod_sdk::RunpodConfig;
-    /// let client = RunpodConfig::builder()
-    ///     .with_api_key("your-api-key")
-    ///     .build_v1()
-    ///     .unwrap();
+    /// // Set environment variable first:
+    /// // export RUNPOD_API_KEY=your-api-key
+    /// let config = RunpodConfig::from_env().unwrap();
     /// ```
-    pub fn build_v1(self) -> Result<RunpodClient> {
-        let config = self.build()?;
-        RunpodClient::new(config)
-    }
+    #[cfg_attr(feature = "tracing", tracing::instrument)]
+    pub fn from_env() -> Result<Self> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_CONFIG, "Loading configuration from environment");
 
-    /// Creates a RunPod client with a specific API version directly from the builder.
-    ///
-    /// This is a lower-level method that allows specifying the API version type parameter.
-    /// For most use cases, use [`build_v1`](Self::build_v1) instead.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// # use runpod_sdk::RunpodConfig;
-    /// # use runpod_sdk::version::V1;
-    /// let client = RunpodConfig::builder()
-    ///     .with_api_key("your-api-key")
-    ///     .build_v::<V1>()
-    ///     .unwrap();
-    /// ```
-    pub fn build_v<V>(self) -> Result<RunpodClient<V>>
-    where
-        V: ApiVersion,
-    {
-        let config = self.build()?;
-        RunpodClient::new(config)
+        let api_key = std::env::var("RUNPOD_API_KEY").map_err(|_| {
+            #[cfg(feature = "tracing")]
+            tracing::error!(target: TRACING_TARGET_CONFIG, "RUNPOD_API_KEY environment variable not set");
+
+            RunpodBuilderError::ValidationError(
+                "RUNPOD_API_KEY environment variable not set".to_string(),
+            )
+        })?;
+
+        let mut builder = Self::builder().with_api_key(api_key);
+
+        // Optional: custom REST URL (also support legacy RUNPOD_BASE_URL)
+        if let Ok(rest_url) = std::env::var("RUNPOD_REST_URL") {
+            #[cfg(feature = "tracing")]
+            tracing::debug!(target: TRACING_TARGET_CONFIG, rest_url = %rest_url, "Using custom REST URL");
+
+            builder = builder.with_rest_url(rest_url);
+        } else if let Ok(base_url) = std::env::var("RUNPOD_BASE_URL") {
+            #[cfg(feature = "tracing")]
+            tracing::debug!(target: TRACING_TARGET_CONFIG, base_url = %base_url, "Using custom base URL (legacy)");
+
+            builder = builder.with_rest_url(base_url);
+        }
+
+        // Optional: custom API URL for serverless endpoints
+        #[cfg(feature = "serverless")]
+        if let Ok(api_url) = std::env::var("RUNPOD_API_URL") {
+            #[cfg(feature = "tracing")]
+            tracing::debug!(
+                target: TRACING_TARGET_CONFIG,
+                api_url = %api_url,
+                "Using custom API URL"
+            );
+
+            builder = builder.with_api_url(api_url);
+        }
+
+        // Optional: custom GraphQL URL
+        #[cfg(feature = "graphql")]
+        if let Ok(graphql_url) = std::env::var("RUNPOD_GRAPHQL_URL") {
+            #[cfg(feature = "tracing")]
+            tracing::debug!(
+                target: TRACING_TARGET_CONFIG,
+                graphql_url = %graphql_url,
+                "Using custom GraphQL URL"
+            );
+
+            builder = builder.with_graphql_url(graphql_url);
+        }
+
+        // Optional: custom timeout
+        if let Ok(timeout_str) = std::env::var("RUNPOD_TIMEOUT_SECS") {
+            let timeout_secs = timeout_str.parse::<u64>().map_err(|_| {
+                #[cfg(feature = "tracing")]
+                tracing::error!(target: TRACING_TARGET_CONFIG, timeout_str = %timeout_str, "Invalid RUNPOD_TIMEOUT_SECS value");
+
+                RunpodBuilderError::ValidationError(format!(
+                    "Invalid RUNPOD_TIMEOUT_SECS value: {}",
+                    timeout_str
+                ))
+            })?;
+
+            #[cfg(feature = "tracing")]
+            tracing::debug!(target: TRACING_TARGET_CONFIG, timeout_secs, "Using custom timeout");
+
+            builder = builder.with_timeout(Duration::from_secs(timeout_secs));
+        }
+
+        let config = builder.build()?;
+
+        #[cfg(feature = "tracing")]
+        tracing::info!(target: TRACING_TARGET_CONFIG,
+            rest_url = %config.rest_url(),
+            timeout = ?config.timeout(),
+            "Configuration loaded successfully from environment"
+        );
+
+        Ok(config)
     }
 }
 
@@ -321,8 +345,11 @@ impl fmt::Debug for RunpodConfig {
         let mut debug_struct = f.debug_struct("RunpodConfig");
         debug_struct
             .field("api_key", &self.masked_api_key())
-            .field("base_url", &self.base_url)
+            .field("rest_url", &self.rest_url)
             .field("timeout", &self.timeout);
+
+        #[cfg(feature = "serverless")]
+        debug_struct.field("api_url", &self.api_url);
 
         #[cfg(feature = "graphql")]
         debug_struct.field("graphql_url", &self.graphql_url);
@@ -340,7 +367,9 @@ mod tests {
         let config = RunpodConfig::builder().with_api_key("test_key").build()?;
 
         assert_eq!(config.api_key(), "test_key");
-        assert_eq!(config.base_url(), "https://rest.runpod.io/v1");
+        assert_eq!(config.rest_url(), "https://rest.runpod.io/v1");
+        #[cfg(feature = "serverless")]
+        assert_eq!(config.api_url(), "https://api.runpod.io/v2");
         #[cfg(feature = "graphql")]
         assert_eq!(config.graphql_url(), "https://api.runpod.io/graphql");
         assert_eq!(config.timeout(), Duration::from_secs(30));
@@ -352,12 +381,12 @@ mod tests {
     fn test_config_builder_with_custom_values() -> Result<()> {
         let config = RunpodConfig::builder()
             .with_api_key("test_key")
-            .with_base_url("https://custom.api.com")
+            .with_rest_url("https://custom.api.com")
             .with_timeout(Duration::from_secs(60))
             .build()?;
 
         assert_eq!(config.api_key(), "test_key");
-        assert_eq!(config.base_url(), "https://custom.api.com");
+        assert_eq!(config.rest_url(), "https://custom.api.com");
         assert_eq!(config.timeout(), Duration::from_secs(60));
 
         Ok(())
@@ -393,12 +422,12 @@ mod tests {
     fn test_config_builder_with_all_options() -> Result<()> {
         let config = RunpodConfig::builder()
             .with_api_key("test_key_comprehensive")
-            .with_base_url("https://api.custom-domain.com/v2")
+            .with_rest_url("https://api.custom-domain.com/v2")
             .with_timeout(Duration::from_secs(120))
             .build()?;
 
         assert_eq!(config.api_key(), "test_key_comprehensive");
-        assert_eq!(config.base_url(), "https://api.custom-domain.com/v2");
+        assert_eq!(config.rest_url(), "https://api.custom-domain.com/v2");
         assert_eq!(config.timeout(), Duration::from_secs(120));
 
         Ok(())
@@ -409,7 +438,7 @@ mod tests {
         let config = RunpodConfig::builder().with_api_key("test_key").build()?;
 
         assert_eq!(config.api_key(), "test_key");
-        assert_eq!(config.base_url(), "https://rest.runpod.io/v1");
+        assert_eq!(config.rest_url(), "https://rest.runpod.io/v1");
         assert_eq!(config.timeout(), Duration::from_secs(30));
 
         Ok(())

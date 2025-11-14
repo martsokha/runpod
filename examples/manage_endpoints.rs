@@ -1,43 +1,48 @@
-//! Serverless endpoint management example.
+//! Endpoint management example.
 //!
-//! This example demonstrates:
-//! - Listing endpoints with detailed information
-//! - Querying endpoint templates and workers
-//! - Displaying endpoint configuration
+//! # Usage
 //!
-//! Run with: cargo run --example manage_endpoints
+//! ```bash
+//! export RUNPOD_API_KEY="your-api-key-here"
+//! cargo run --example manage_endpoints
+//! ```
 
-use runpod_sdk::model::v1::ListEndpointsQuery;
-use runpod_sdk::service::v1::EndpointsService;
+use runpod_sdk::model::ListEndpointsQuery;
+use runpod_sdk::service::EndpointsService;
 use runpod_sdk::{Result, RunpodClient};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Create client from RUNPOD_API_KEY environment variable
     let client = RunpodClient::from_env()?;
 
-    // List all endpoints with template and worker information
-    println!("Listing all endpoints...");
+    // List endpoints
+    println!("Listing endpoints...");
     let query = ListEndpointsQuery {
         include_template: Some(true),
         include_workers: Some(true),
     };
-
     let endpoints = client.list_endpoints(query).await?;
-    println!("Found {} endpoints\n", endpoints.len());
+    println!("Found {} endpoints", endpoints.len());
 
     for endpoint in &endpoints {
         println!(
-            "Endpoint: {}",
+            "  - {} ({})",
+            endpoint.name.as_deref().unwrap_or("unnamed"),
+            endpoint.id
+        );
+    }
+
+    // Display first endpoint details
+    if let Some(endpoint) = endpoints.first() {
+        println!(
+            "\nEndpoint Details: {}",
             endpoint.name.as_deref().unwrap_or("unnamed")
         );
-        println!("  ID: {}", endpoint.id);
         println!(
             "  Workers: {} min, {} max",
             endpoint.workers_min, endpoint.workers_max
         );
-        println!("  Scaler Type: {:?}", endpoint.scaler_type);
-        println!("  Version: {}", endpoint.version);
+        println!("  Scaler: {:?}", endpoint.scaler_type);
 
         if let Some(template) = &endpoint.template {
             println!("  Template: {}", template.name);
@@ -47,7 +52,6 @@ async fn main() -> Result<()> {
         if let Some(workers) = &endpoint.workers {
             println!("  Active Workers: {}", workers.len());
         }
-        println!();
     }
 
     Ok(())

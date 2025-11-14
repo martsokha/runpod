@@ -1,9 +1,11 @@
 use std::future::Future;
 
-use crate::model::v1::{
+#[cfg(feature = "tracing")]
+use crate::TRACING_TARGET_SERVICE;
+use crate::model::{
     NetworkVolume, NetworkVolumeCreateInput, NetworkVolumeUpdateInput, NetworkVolumes,
 };
-use crate::version::V1;
+
 use crate::{Result, RunpodClient};
 
 /// Trait for managing network volumes.
@@ -25,8 +27,8 @@ pub trait VolumesService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::v1::NetworkVolumeCreateInput;
-    /// # use runpod_sdk::service::v1::VolumesService;
+    /// # use runpod_sdk::model::NetworkVolumeCreateInput;
+    /// # use runpod_sdk::service::VolumesService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -57,7 +59,7 @@ pub trait VolumesService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::service::v1::VolumesService;
+    /// # use runpod_sdk::service::VolumesService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -83,7 +85,7 @@ pub trait VolumesService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::service::v1::VolumesService;
+    /// # use runpod_sdk::service::VolumesService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -110,8 +112,8 @@ pub trait VolumesService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::model::v1::NetworkVolumeUpdateInput;
-    /// # use runpod_sdk::service::v1::VolumesService;
+    /// # use runpod_sdk::model::NetworkVolumeUpdateInput;
+    /// # use runpod_sdk::service::VolumesService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -144,7 +146,7 @@ pub trait VolumesService {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, RunpodConfig, Result};
-    /// # use runpod_sdk::service::v1::VolumesService;
+    /// # use runpod_sdk::service::VolumesService;
     /// # async fn example() -> Result<()> {
     /// let config = RunpodConfig::builder().with_api_key("your-api-key").build()?;
     /// let client = RunpodClient::new(config)?;
@@ -157,23 +159,50 @@ pub trait VolumesService {
     fn delete_volume(&self, volume_id: &str) -> impl Future<Output = Result<()>>;
 }
 
-impl VolumesService for RunpodClient<V1> {
+impl VolumesService for RunpodClient {
     async fn create_volume(&self, input: NetworkVolumeCreateInput) -> Result<NetworkVolume> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Creating network volume");
+
         let response = self.post("/networkvolumes").json(&input).send().await?;
-        let volume = response.json().await?;
+        let response = response.error_for_status()?;
+        let volume: NetworkVolume = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, volume_id = %volume.id, "Network volume created successfully");
+
         Ok(volume)
     }
 
     async fn list_volumes(&self) -> Result<NetworkVolumes> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Listing network volumes");
+
         let response = self.get("/networkvolumes").send().await?;
-        let volumes = response.json().await?;
+        let response = response.error_for_status()?;
+        let volumes: NetworkVolumes = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(
+            count = volumes.len(),
+            "Network volumes retrieved successfully"
+        );
+
         Ok(volumes)
     }
 
     async fn get_volume(&self, volume_id: &str) -> Result<NetworkVolume> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Getting network volume");
+
         let path = format!("/networkvolumes/{}", volume_id);
         let response = self.get(&path).send().await?;
-        let volume = response.json().await?;
+        let response = response.error_for_status()?;
+        let volume: NetworkVolume = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Network volume retrieved successfully");
+
         Ok(volume)
     }
 
@@ -182,15 +211,31 @@ impl VolumesService for RunpodClient<V1> {
         volume_id: &str,
         input: NetworkVolumeUpdateInput,
     ) -> Result<NetworkVolume> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Updating network volume");
+
         let path = format!("/networkvolumes/{}", volume_id);
         let response = self.patch(&path).json(&input).send().await?;
-        let volume = response.json().await?;
+        let response = response.error_for_status()?;
+        let volume: NetworkVolume = response.json().await?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Network volume updated successfully");
+
         Ok(volume)
     }
 
     async fn delete_volume(&self, volume_id: &str) -> Result<()> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Deleting network volume");
+
         let path = format!("/networkvolumes/{}", volume_id);
-        self.delete(&path).send().await?;
+        let response = self.delete(&path).send().await?;
+        response.error_for_status()?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(target: TRACING_TARGET_SERVICE, "Network volume deleted successfully");
+
         Ok(())
     }
 }
