@@ -1,14 +1,16 @@
 //! Types for the endpoint runner
 
-use std::fmt;
-
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "strum")]
+use strum::{Display, EnumString};
 
 /// Job status indicating the current state of a serverless job.
 ///
 /// Jobs progress through various states from submission to completion or failure.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "strum", derive(Display, EnumString))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[cfg_attr(feature = "strum", strum(serialize_all = "SCREAMING_SNAKE_CASE"))]
 pub enum JobStatus {
     /// Job is waiting in the queue to be processed
     InQueue,
@@ -36,19 +38,6 @@ impl JobStatus {
     /// Returns true if the job completed successfully
     pub fn is_completed(&self) -> bool {
         matches!(self, JobStatus::Completed)
-    }
-}
-
-impl fmt::Display for JobStatus {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            JobStatus::InQueue => write!(f, "IN_QUEUE"),
-            JobStatus::InProgress => write!(f, "IN_PROGRESS"),
-            JobStatus::Completed => write!(f, "COMPLETED"),
-            JobStatus::Failed => write!(f, "FAILED"),
-            JobStatus::TimedOut => write!(f, "TIMED_OUT"),
-            JobStatus::Cancelled => write!(f, "CANCELLED"),
-        }
     }
 }
 

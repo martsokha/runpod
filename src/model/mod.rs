@@ -1,6 +1,7 @@
-//! Version 1 API models.
+//! RunPod API data models.
 //!
-//! This module contains all data models for the V1 API.
+//! This module contains all data models for the RunPod API, including request and response
+//! types for managing cloud resources.
 
 mod billing;
 mod common;

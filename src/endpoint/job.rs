@@ -13,6 +13,9 @@ use super::types::{
 };
 use crate::{Result, RunpodClient};
 
+#[cfg(feature = "tracing")]
+const TRACING_TARGET: &str = "runpod_sdk::endpoint::job";
+
 pin_project_lite::pin_project! {
     /// A job submitted to a serverless endpoint.
     ///
@@ -77,11 +80,10 @@ impl Job {
 
     /// Fetches the current job state from the specified endpoint.
     async fn fetch_job(&self, source: &str) -> Result<serde_json::Value> {
-        let job_id = self.job_id.as_ref().ok_or_else(|| {
-            crate::Error::Serialization(
-                serde_json::from_str::<Value>("\"Job has not been submitted yet\"").unwrap_err(),
-            )
-        })?;
+        let job_id = self
+            .job_id
+            .as_ref()
+            .ok_or_else(|| crate::Error::Job("Job has not been submitted yet".to_string()))?;
         let path = format!("{}/{}/{}", self.endpoint_id, source, job_id);
 
         let response = self.client.get_api(&path).send().await?;
@@ -102,7 +104,7 @@ impl Job {
     /// # async fn example() -> Result<()> {
     /// let client = RunpodClient::from_env()?;
     /// let endpoint = Endpoint::new("ENDPOINT_ID", &client);
-    /// let job = endpoint.run(&json!({"prompt": "Hello"})).await?;
+    /// let job = endpoint.run(&json!({"prompt": "Hello"}))?;
     ///
     /// let status = job.status().await?;
     /// match status {
@@ -115,8 +117,25 @@ impl Job {
     /// # }
     /// ```
     pub async fn status(&self) -> Result<JobStatus> {
+        #[cfg(feature = "tracing")]
+        tracing::debug!(
+            target: TRACING_TARGET,
+            job_id = ?self.job_id,
+            endpoint_id = %self.endpoint_id,
+            "Fetching job status"
+        );
+
         let data = self.fetch_job("status").await?;
         let response: JobStatusResponse = serde_json::from_value(data)?;
+
+        #[cfg(feature = "tracing")]
+        tracing::debug!(
+            target: TRACING_TARGET,
+            job_id = ?self.job_id,
+            status = %response.status,
+            "Job status retrieved"
+        );
+
         Ok(response.status)
     }
 
@@ -138,7 +157,7 @@ impl Job {
     /// # async fn example() -> Result<()> {
     /// let client = RunpodClient::from_env()?;
     /// let endpoint = Endpoint::new("ENDPOINT_ID", &client);
-    /// let job = endpoint.run(&json!({"prompt": "Hello"})).await?;
+    /// let job = endpoint.run(&json!({"prompt": "Hello"}))?;
     ///
     /// let output: Output = job.output().await?;
     /// println!("Result: {}", output.text);
@@ -171,7 +190,7 @@ impl Job {
     /// # async fn example() -> Result<()> {
     /// let client = RunpodClient::from_env()?;
     /// let endpoint = Endpoint::new("ENDPOINT_ID", &client);
-    /// let job = endpoint.run(&json!({"prompt": "Generate text"})).await?;
+    /// let job = endpoint.run(&json!({"prompt": "Generate text"}))?;
     ///
     /// loop {
     ///     let (status, chunks) = job.stream().await?;
@@ -206,25 +225,23 @@ impl Job {
     /// # async fn example() -> Result<()> {
     /// let client = RunpodClient::from_env()?;
     /// let endpoint = Endpoint::new("ENDPOINT_ID", &client);
-    /// let job = endpoint.run(&json!({"prompt": "Long running task"})).await?;
+    /// let job = endpoint.run(&json!({"prompt": "Long running task"}))?;
     ///
     /// job.cancel().await?;
     /// println!("Job cancelled");
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn cancel(&self) -> Result<Value> {
-        let job_id = self.job_id.as_ref().ok_or_else(|| {
-            crate::Error::Serialization(
-                serde_json::from_str::<Value>("\"Job has not been submitted yet\"").unwrap_err(),
-            )
-        })?;
+    pub async fn cancel(&self) -> Result<()> {
+        let job_id = self
+            .job_id
+            .as_ref()
+            .ok_or_else(|| crate::Error::Job("Job has not been submitted yet".to_string()))?;
         let path = format!("{}/cancel/{}", self.endpoint_id, job_id);
 
         let response = self.client.post_api(&path).send().await?;
-        let response = response.error_for_status()?;
-        let data = response.json().await?;
-        Ok(data)
+        response.error_for_status()?;
+        Ok(())
     }
 }
 
@@ -247,6 +264,13 @@ impl Future for Job {
                 let client = this.client.clone();
 
                 let fut = async move {
+                    #[cfg(feature = "tracing")]
+                    tracing::debug!(
+                        target: TRACING_TARGET,
+                        endpoint_id = %endpoint_id,
+                        "Submitting job to endpoint"
+                    );
+
                     let path = format!("{}/run", endpoint_id);
 
                     let payload = RunRequest { input };
@@ -255,6 +279,14 @@ impl Future for Job {
 
                     let response = response.error_for_status()?;
                     let run_response: RunResponse = response.json().await?;
+
+                    #[cfg(feature = "tracing")]
+                    tracing::info!(
+                        target: TRACING_TARGET,
+                        endpoint_id = %endpoint_id,
+                        job_id = %run_response.id,
+                        "Job submitted successfully"
+                    );
 
                     Ok::<_, crate::Error>(run_response.id)
                 };
@@ -268,6 +300,14 @@ impl Future for Job {
                         Poll::Pending
                     }
                     Poll::Ready(Err(e)) => {
+                        #[cfg(feature = "tracing")]
+                        tracing::error!(
+                            target: TRACING_TARGET,
+                            endpoint_id = %this.endpoint_id,
+                            error = %e,
+                            "Failed to submit job"
+                        );
+
                         *this.state.get_mut() = JobState::Failed(e);
                         cx.waker().wake_by_ref();
                         Poll::Pending
@@ -296,16 +336,40 @@ impl Future for Job {
                 match pinned.as_mut().poll(cx) {
                     Poll::Ready(Ok((status, output))) => {
                         if status.is_final() {
+                            #[cfg(feature = "tracing")]
+                            tracing::info!(
+                                target: TRACING_TARGET,
+                                job_id = ?this.job_id,
+                                status = %status,
+                                "Job reached final state"
+                            );
+
                             *this.state.get_mut() = JobState::Ready(output);
                             cx.waker().wake_by_ref();
                             Poll::Pending
                         } else {
+                            #[cfg(feature = "tracing")]
+                            tracing::trace!(
+                                target: TRACING_TARGET,
+                                job_id = ?this.job_id,
+                                status = %status,
+                                "Job still in progress, continuing to poll"
+                            );
+
                             // Still polling, wake up later
                             cx.waker().wake_by_ref();
                             Poll::Pending
                         }
                     }
                     Poll::Ready(Err(e)) => {
+                        #[cfg(feature = "tracing")]
+                        tracing::error!(
+                            target: TRACING_TARGET,
+                            job_id = ?this.job_id,
+                            error = %e,
+                            "Failed to poll job status"
+                        );
+
                         *this.state.get_mut() = JobState::Failed(e);
                         cx.waker().wake_by_ref();
                         Poll::Pending
@@ -317,9 +381,7 @@ impl Future for Job {
                 let output = output.take();
                 match output {
                     Some(val) => Poll::Ready(Ok(val)),
-                    None => Poll::Ready(Err(crate::Error::Serialization(
-                        serde_json::from_str::<Value>("\"Job has no output\"").unwrap_err(),
-                    ))),
+                    None => Poll::Ready(Err(crate::Error::Job("Job has no output".to_string()))),
                 }
             }
             JobState::Failed(_) => {

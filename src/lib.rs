@@ -79,11 +79,13 @@ pub enum Error {
     #[error("Configuration error: {0}")]
     Config(#[from] RunpodBuilderError),
 
-    /// Job execution timeout.
+    /// Job operation error.
     ///
-    /// This occurs when a job exceeds the specified timeout duration.
-    #[error("Job timed out")]
-    Timeout,
+    /// This occurs when attempting to perform operations on a job that is in an invalid state.
+    #[cfg(feature = "endpoint")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "endpoint")))]
+    #[error("Job error: {0}")]
+    Job(String),
 }
 
 /// Result type for RunPod API operations.

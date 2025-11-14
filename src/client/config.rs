@@ -43,7 +43,7 @@ use crate::client::RunpodClient;
 /// # use std::time::Duration;
 /// let config = RunpodConfig::builder()
 ///     .with_api_key("your-api-key")
-///     .with_base_url("https://custom.api.com")
+///     .with_rest_url("https://custom.api.com")
 ///     .with_timeout(Duration::from_secs(60))
 ///     .build()
 ///     .unwrap();

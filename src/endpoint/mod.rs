@@ -40,7 +40,7 @@
 //!
 //! let job = endpoint.run(&Input {
 //!     prompt: "Hello, world!".to_string(),
-//! });
+//! })?;
 //!
 //! let output: Output = job.output().await?;
 //! println!("Result: {}", output.text);
@@ -57,7 +57,7 @@
 //! # async fn example() -> Result<()> {
 //! # let client = RunpodClient::from_env()?;
 //! # let endpoint = Endpoint::new("YOUR_ENDPOINT_ID", &client);
-//! let job = endpoint.run(&json!({"prompt": "Hello"}));
+//! let job = endpoint.run(&json!({"prompt": "Hello"}))?;
 //!
 //! let status = job.status().await?;
 //! match status {
@@ -79,7 +79,7 @@
 //! # async fn example() -> Result<()> {
 //! # let client = RunpodClient::from_env()?;
 //! # let endpoint = Endpoint::new("YOUR_ENDPOINT_ID", &client);
-//! let job = endpoint.run(&json!({"prompt": "Generate text"}));
+//! let job = endpoint.run(&json!({"prompt": "Generate text"}))?;
 //!
 //! loop {
 //!     let (status, chunks) = job.stream().await?;

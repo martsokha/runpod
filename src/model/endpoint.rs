@@ -228,63 +228,6 @@ pub struct Endpoint {
     pub workers: Option<Vec<Pod>>,
 }
 
-impl Endpoint {
-    /// Creates an endpoint runner from this endpoint.
-    ///
-    /// # Example
-    ///
-    /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, Result};
-    /// # use runpod_sdk::service::EndpointsService;
-    /// # use runpod_sdk::model::GetEndpointQuery;
-    /// # async fn example() -> Result<()> {
-    /// let client = RunpodClient::from_env()?;
-    /// let endpoint = client.get_endpoint("endpoint_id", GetEndpointQuery::default()).await?;
-    ///
-    /// let runner = endpoint.runner(&client);
-    /// # Ok(())
-    /// # }
-    /// ```
-    #[cfg(feature = "endpoint")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "endpoint")))]
-    pub fn runner(&self, client: &crate::RunpodClient) -> crate::endpoint::Endpoint {
-        crate::endpoint::Endpoint::new(&self.id, client)
-    }
-
-    /// Runs a job on this endpoint.
-    ///
-    /// This is a convenience method that creates a runner and submits a job in one call.
-    ///
-    /// # Example
-    ///
-    /// ```no_run
-    /// # use runpod_sdk::{RunpodClient, Result};
-    /// # use runpod_sdk::service::EndpointsService;
-    /// # use runpod_sdk::model::GetEndpointQuery;
-    /// # use serde_json::json;
-    /// # async fn example() -> Result<()> {
-    /// let client = RunpodClient::from_env()?;
-    /// let endpoint = client.get_endpoint("endpoint_id", GetEndpointQuery::default()).await?;
-    ///
-    /// let job = endpoint.run(&json!({"prompt": "Hello"}), &client)?;
-    /// # Ok(())
-    /// # }
-    /// ```
-    #[cfg(feature = "endpoint")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "endpoint")))]
-    pub fn run<I>(
-        &self,
-        input: &I,
-        client: &crate::RunpodClient,
-    ) -> crate::Result<crate::endpoint::Job>
-    where
-        I: serde::Serialize,
-    {
-        let runner = self.runner(client);
-        runner.run(input)
-    }
-}
-
 /// List of serverless endpoints.
 ///
 /// A collection type representing multiple endpoints, typically returned

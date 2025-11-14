@@ -42,7 +42,7 @@ use std::time::Duration;
 async fn main() -> Result<()> {
     let client = RunpodConfig::builder()
         .with_api_key("your-api-key")
-        .with_base_url("https://api.runpod.io/v1")
+        .with_rest_url("https://rest.runpod.io/v1")
         .with_timeout(Duration::from_secs(60))
         .build_client()?;
 

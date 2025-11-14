@@ -1,6 +1,7 @@
-//! Version 1 API services.
+//! RunPod API services.
 //!
-//! This module contains all service trait implementations for the V1 API.
+//! This module contains all service trait implementations for the RunPod API.
+//! Services provide the primary interface for interacting with RunPod resources.
 
 mod billing;
 mod endpoints;

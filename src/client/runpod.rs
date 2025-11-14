@@ -324,14 +324,13 @@ impl RunpodClient {
     /// # Example
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, Result};
-    /// # use runpod_sdk::version::V1;
     /// # use serde::Deserialize;
     /// # #[derive(Deserialize)]
     /// # struct MyResponse {
     /// #     data: String,
     /// # }
     /// # async fn example() -> Result<()> {
-    /// let client = RunpodClient::<V1>::from_env()?;
+    /// let client = RunpodClient::from_env()?;
     /// let query = r#"{ viewer { id name } }"#;
     /// let response: MyResponse = client.graphql_query(query).await?;
     /// # Ok(())

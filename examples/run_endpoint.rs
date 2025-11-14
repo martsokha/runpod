@@ -22,7 +22,7 @@ async fn main() -> Result<()> {
     let client = RunpodClient::from_env()?;
     println!("Client created successfully\n");
 
-    let endpoint = Endpoint::new(&endpoint_id, &client);
+    let endpoint = Endpoint::new(endpoint_id, client);
     println!(
         "Endpoint instance created for: {}\n",
         endpoint.endpoint_id()
