@@ -70,8 +70,8 @@ pub struct RunpodConfig {
     /// Base API URL for the Runpod serverless endpoints.
     ///
     /// Defaults to the official Runpod API endpoint.
-    #[cfg(feature = "endpoint")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "endpoint")))]
+    #[cfg(feature = "serverless")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "serverless")))]
     #[builder(default = "Self::default_api_url()")]
     api_url: String,
 
@@ -97,8 +97,8 @@ impl RunpodBuilder {
     }
 
     /// Returns the default API URL for the Runpod serverless endpoints.
-    #[cfg(feature = "endpoint")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "endpoint")))]
+    #[cfg(feature = "serverless")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "serverless")))]
     fn default_api_url() -> String {
         "https://api.runpod.io/v2".to_string()
     }
@@ -216,8 +216,8 @@ impl RunpodConfig {
     }
 
     /// Returns the API URL for serverless endpoints.
-    #[cfg(feature = "endpoint")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "endpoint")))]
+    #[cfg(feature = "serverless")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "serverless")))]
     pub fn api_url(&self) -> &str {
         &self.api_url
     }
@@ -237,7 +237,7 @@ impl RunpodConfig {
     /// Creates a configuration from environment variables.
     ///
     /// Reads the API key from the `RUNPOD_API_KEY` environment variable.
-    /// Optionally reads `RUNPOD_REST_URL`, `RUNPOD_API_URL` (with endpoint feature),
+    /// Optionally reads `RUNPOD_REST_URL`, `RUNPOD_API_URL` (with serverless feature),
     /// `RUNPOD_GRAPHQL_URL` (with graphql feature), and `RUNPOD_TIMEOUT_SECS` if set.
     ///
     /// # Errors
@@ -284,7 +284,7 @@ impl RunpodConfig {
         }
 
         // Optional: custom API URL for serverless endpoints
-        #[cfg(feature = "endpoint")]
+        #[cfg(feature = "serverless")]
         if let Ok(api_url) = std::env::var("RUNPOD_API_URL") {
             #[cfg(feature = "tracing")]
             tracing::debug!(
@@ -348,7 +348,7 @@ impl fmt::Debug for RunpodConfig {
             .field("rest_url", &self.rest_url)
             .field("timeout", &self.timeout);
 
-        #[cfg(feature = "endpoint")]
+        #[cfg(feature = "serverless")]
         debug_struct.field("api_url", &self.api_url);
 
         #[cfg(feature = "graphql")]
@@ -368,7 +368,7 @@ mod tests {
 
         assert_eq!(config.api_key(), "test_key");
         assert_eq!(config.rest_url(), "https://rest.runpod.io/v1");
-        #[cfg(feature = "endpoint")]
+        #[cfg(feature = "serverless")]
         assert_eq!(config.api_url(), "https://api.runpod.io/v2");
         #[cfg(feature = "graphql")]
         assert_eq!(config.graphql_url(), "https://api.runpod.io/graphql");

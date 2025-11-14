@@ -1,4 +1,4 @@
-//! Endpoint class for running serverless jobs
+//! Serverless endpoint runner for running serverless jobs
 
 use std::sync::Arc;
 
@@ -9,7 +9,7 @@ use super::types::EndpointHealth;
 use crate::{Result, RunpodClient, model};
 
 #[cfg(feature = "tracing")]
-const TRACING_TARGET: &str = "runpod_sdk::endpoint";
+const TRACING_TARGET: &str = "runpod_sdk::serverless";
 
 /// Class for running jobs on a specific endpoint.
 ///
@@ -17,12 +17,12 @@ const TRACING_TARGET: &str = "runpod_sdk::endpoint";
 ///
 /// ```no_run
 /// use runpod_sdk::{RunpodClient, Result};
-/// use runpod_sdk::endpoint::Endpoint;
+/// use runpod_sdk::serverless::Endpoint;
 /// use serde_json::json;
 ///
 /// # async fn example() -> Result<()> {
 /// let client = RunpodClient::from_env()?;
-/// let endpoint = Endpoint::new("YOUR_ENDPOINT_ID", &client);
+/// let endpoint = Endpoint::new("YOUR_ENDPOINT_ID", client);
 ///
 /// let job = endpoint.run(&json!({"prompt": "Hello, world!"}))?;
 /// let output: serde_json::Value = job.await?;
@@ -47,10 +47,10 @@ impl Endpoint {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, Result};
-    /// # use runpod_sdk::endpoint::Endpoint;
+    /// # use runpod_sdk::serverless::Endpoint;
     /// # fn example() -> Result<()> {
     /// let client = RunpodClient::from_env()?;
-    /// let endpoint = Endpoint::new("ENDPOINT_ID", &client);
+    /// let endpoint = Endpoint::new("ENDPOINT_ID", client);
     /// # Ok(())
     /// # }
     /// ```
@@ -81,7 +81,7 @@ impl Endpoint {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, Result};
-    /// # use runpod_sdk::endpoint::Endpoint;
+    /// # use runpod_sdk::serverless::Endpoint;
     /// # use serde::{Deserialize, Serialize};
     /// # use serde_json::json;
     /// #
@@ -92,7 +92,7 @@ impl Endpoint {
     /// #
     /// # async fn example() -> Result<()> {
     /// let client = RunpodClient::from_env()?;
-    /// let endpoint = Endpoint::new("ENDPOINT_ID", &client);
+    /// let endpoint = Endpoint::new("ENDPOINT_ID", client);
     ///
     /// let job = endpoint.run(&Input {
     ///     prompt: "Hello, World!".to_string()
@@ -124,11 +124,11 @@ impl Endpoint {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, Result};
-    /// # use runpod_sdk::endpoint::Endpoint;
+    /// # use runpod_sdk::serverless::Endpoint;
     /// # use serde_json::json;
     /// # async fn example() -> Result<()> {
     /// let client = RunpodClient::from_env()?;
-    /// let endpoint = Endpoint::new("ENDPOINT_ID", &client);
+    /// let endpoint = Endpoint::new("ENDPOINT_ID", client);
     ///
     /// let output: serde_json::Value = endpoint.run_now(&json!({"prompt": "Hello"})).await?;
     /// println!("Result: {:?}", output);
@@ -151,10 +151,10 @@ impl Endpoint {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, Result};
-    /// # use runpod_sdk::endpoint::Endpoint;
+    /// # use runpod_sdk::serverless::Endpoint;
     /// # async fn example() -> Result<()> {
     /// let client = RunpodClient::from_env()?;
-    /// let endpoint = Endpoint::new("ENDPOINT_ID", &client);
+    /// let endpoint = Endpoint::new("ENDPOINT_ID", client);
     ///
     /// let health = endpoint.health().await?;
     /// println!("Workers ready: {}", health.workers.ready);
@@ -194,10 +194,10 @@ impl Endpoint {
     ///
     /// ```no_run
     /// # use runpod_sdk::{RunpodClient, Result};
-    /// # use runpod_sdk::endpoint::Endpoint;
+    /// # use runpod_sdk::serverless::Endpoint;
     /// # async fn example() -> Result<()> {
     /// let client = RunpodClient::from_env()?;
-    /// let endpoint = Endpoint::new("ENDPOINT_ID", &client);
+    /// let endpoint = Endpoint::new("ENDPOINT_ID", client);
     ///
     /// endpoint.purge_queue().await?;
     /// println!("Queue purged");
@@ -247,9 +247,9 @@ impl model::Endpoint {
     /// # use runpod_sdk::model::GetEndpointQuery;
     /// # async fn example() -> Result<()> {
     /// let client = RunpodClient::from_env()?;
-    /// let endpoint = client.get_endpoint("endpoint_id", GetEndpointQuery::default()).await?;
+    /// let serverless_endpoint = client.get_endpoint("endpoint_id", GetEndpointQuery::default()).await?;
     ///
-    /// let runner = endpoint.to_runner(&client);
+    /// let runner = serverless_endpoint.to_runner(client);
     /// # Ok(())
     /// # }
     /// ```
@@ -270,9 +270,9 @@ impl model::Endpoint {
     /// # use serde_json::json;
     /// # async fn example() -> Result<()> {
     /// let client = RunpodClient::from_env()?;
-    /// let endpoint = client.get_endpoint("endpoint_id", GetEndpointQuery::default()).await?;
+    /// let serverless_endpoint = client.get_endpoint("endpoint_id", GetEndpointQuery::default()).await?;
     ///
-    /// let job = endpoint.run_job(&json!({"prompt": "Hello"}), &client)?;
+    /// let job = serverless_endpoint.run(client, &json!({"prompt": "Hello"}))?;
     /// # Ok(())
     /// # }
     /// ```

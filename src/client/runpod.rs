@@ -149,8 +149,8 @@ impl RunpodClient {
     ///
     /// This is a low-level method for making GET requests to the RunPod API.
     /// The path should be relative to the API base URL (e.g., "endpoint_id/status/job_id").
-    #[cfg(feature = "endpoint")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "endpoint")))]
+    #[cfg(feature = "serverless")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "serverless")))]
     #[cfg_attr(
         feature = "tracing",
         tracing::instrument(
@@ -180,8 +180,8 @@ impl RunpodClient {
     ///
     /// This is a low-level method for making POST requests to the RunPod API.
     /// The path should be relative to the API base URL (e.g., "endpoint_id/run").
-    #[cfg(feature = "endpoint")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "endpoint")))]
+    #[cfg(feature = "serverless")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "serverless")))]
     #[cfg_attr(
         feature = "tracing",
         tracing::instrument(

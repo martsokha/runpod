@@ -3,12 +3,12 @@
 #![doc = include_str!("../README.md")]
 
 mod client;
-#[cfg(feature = "endpoint")]
-#[cfg_attr(docsrs, doc(cfg(feature = "endpoint")))]
-pub mod endpoint;
 pub mod model;
 #[doc(hidden)]
 pub mod prelude;
+#[cfg(feature = "serverless")]
+#[cfg_attr(docsrs, doc(cfg(feature = "serverless")))]
+pub mod serverless;
 pub mod service;
 
 pub use client::{RunpodBuilder, RunpodClient, RunpodConfig};
@@ -69,6 +69,8 @@ pub enum Error {
     ///
     /// This occurs when the SDK fails to parse API responses or serialize
     /// request payloads to/from JSON.
+    #[cfg(any(feature = "graphql", feature = "serverless"))]
+    #[cfg_attr(docsrs, doc(cfg(any(feature = "graphql", feature = "serverless"))))]
     #[error("Serialization error: {0}")]
     Serialization(#[from] serde_json::Error),
 
@@ -82,8 +84,8 @@ pub enum Error {
     /// Job operation error.
     ///
     /// This occurs when attempting to perform operations on a job that is in an invalid state.
-    #[cfg(feature = "endpoint")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "endpoint")))]
+    #[cfg(feature = "serverless")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "serverless")))]
     #[error("Job error: {0}")]
     Job(String),
 }

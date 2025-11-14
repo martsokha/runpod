@@ -5,10 +5,10 @@
 //! ```bash
 //! export RUNPOD_API_KEY="your-api-key-here"
 //! export RUNPOD_ENDPOINT_ID="your-endpoint-id"
-//! cargo run --example run_endpoint
+//! cargo run --example run_endpoint --features serverless
 //! ```
 
-use runpod_sdk::endpoint::Endpoint;
+use runpod_sdk::serverless::Endpoint;
 use runpod_sdk::{Result, RunpodClient};
 use serde_json::json;
 
@@ -82,7 +82,7 @@ async fn main() -> Result<()> {
                         }
 
                         if status.is_final() {
-                            println!("  Stream completed with status: {}", status);
+                            println!("  Stream completed with status: {:?}", status);
                             break;
                         }
 
@@ -121,7 +121,7 @@ async fn main() -> Result<()> {
             }
 
             match job.status().await {
-                Ok(status) => println!("  Status after cancel: {}", status),
+                Ok(status) => println!("  Status after cancel: {:?}", status),
                 Err(e) => println!("  Error getting status: {}", e),
             }
         }

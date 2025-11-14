@@ -61,7 +61,7 @@ The SDK can be configured using environment variables:
 | ---------------------- | -------- | ------------------------------- | ---------------------------------------------------------------------------------------- |
 | `RUNPOD_API_KEY`       | Yes      | -                               | Your RunPod API key from [console settings](https://www.runpod.io/console/user/settings) |
 | `RUNPOD_REST_URL`      | No       | `https://rest.runpod.io/v1`     | Custom REST API base URL                                                                 |
-| `RUNPOD_API_URL`       | No       | `https://api.runpod.io/v2`      | Custom API URL for serverless endpoints (requires `endpoint` feature)                    |
+| `RUNPOD_API_URL`       | No       | `https://api.runpod.io/v2`      | Custom API URL for serverless endpoints (requires `serverless` feature)                  |
 | `RUNPOD_GRAPHQL_URL`   | No       | `https://api.runpod.io/graphql` | Custom GraphQL API URL (requires `graphql` feature)                                      |
 | `RUNPOD_TIMEOUT_SECS`  | No       | `30`                            | Request timeout in seconds (max: 300)                                                    |
 

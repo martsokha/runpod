@@ -42,8 +42,8 @@ strum = ["dep:strum"]
 ## Enable GraphQL support
 graphql = ["dep:serde_json"]
 
-## Enable endpoint runner support
-endpoint = ["dep:serde_json", "dep:pin-project-lite"]
+## Enable serverless runner support
+serverless = ["dep:serde_json", "dep:pin-project-lite"]
 
 [dependencies]
 # HTTP client
