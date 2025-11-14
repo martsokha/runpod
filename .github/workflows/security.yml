@@ -115,7 +115,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Build project
-        run: cargo build --release
+        run: cargo build --release --features rustls-tls
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
