@@ -2,6 +2,14 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc = include_str!("../README.md")]
 
+// Compile-time check: ensure at least one TLS backend is enabled
+#[cfg(not(any(feature = "rustls-tls", feature = "native-tls")))]
+compile_error!(
+    "At least one TLS backend must be enabled. \
+     Enable either the 'rustls-tls' (recommended) or 'native-tls' feature. \
+     Example: cargo build --features rustls-tls"
+);
+
 mod client;
 pub mod model;
 #[doc(hidden)]
